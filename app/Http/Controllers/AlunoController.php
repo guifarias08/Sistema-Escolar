@@ -8,21 +8,21 @@ use Illuminate\Http\Request;
 
 class AlunoController extends Controller
 {
-    // Listar alunos com a respetiva turma
+
     public function index()
     {
         $alunos = Aluno::with('turma')->get();
         return view('alunos.index', compact('alunos'));
     }
 
-    // Formulário de criação de aluno
+  
     public function create()
     {
         $turmas = Turma::all();
         return view('alunos.create', compact('turmas'));
     }
 
-    // Guardar novo aluno na base de dados
+   
     public function store(Request $request)
     {
         $request->validate([
@@ -38,14 +38,13 @@ class AlunoController extends Controller
         return redirect()->route('alunos.index')->with('sucesso', 'Aluno cadastrado com sucesso!');
     }
 
-    // Formulário de edição do aluno (Carrega o aluno e as turmas)
+
     public function edit(Aluno $aluno)
     {
         $turmas = Turma::all();
         return view('alunos.edit', compact('aluno', 'turmas'));
     }
 
-    // Atualizar dados do aluno no banco de dados
     public function update(Request $request, Aluno $aluno)
     {
         $request->validate([
@@ -61,7 +60,6 @@ class AlunoController extends Controller
         return redirect()->route('alunos.index')->with('sucesso', 'Aluno atualizado com sucesso!');
     }
 
-    // Eliminar aluno
     public function destroy(Aluno $aluno)
     {
         $aluno->delete();
