@@ -3,10 +3,11 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AlunoController;
 use App\Http\Controllers\TurmaController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DisciplinaController; 
 
-// Rota inicial
-Route::get('/', [AlunoController::class, 'index']);
+Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-// Rotas automáticas para Alunos e Turmas
 Route::resource('alunos', AlunoController::class);
 Route::resource('turmas', TurmaController::class);
+Route::resource('disciplinas', DisciplinaController::class); 

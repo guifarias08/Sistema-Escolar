@@ -83,7 +83,29 @@
                                     </select>
                                 </div>
                             </div>
-
+          <!-- Seção de Seleção de Disciplinas (N:N) -->
+<div class="mb-3">
+    <label class="form-label fw-bold">Disciplinas Matriculadas</label>
+    <div class="row bg-light p-3 rounded border mx-0">
+        @forelse($disciplinas as $disciplina)
+            <div class="col-md-4 mb-2">
+                <div class="form-check">
+                    <input class="form-check-input" 
+                           type="checkbox" 
+                           name="disciplinas[]" 
+                           value="{{ $disciplina->id }}" 
+                           id="disciplina_{{ $disciplina->id }}"
+                           {{ $aluno->disciplinas->contains($disciplina->id) ? 'checked' : '' }}>
+                    <label class="form-check-label" for="disciplina_{{ $disciplina->id }}">
+                        <strong>{{ $disciplina->codigo }}</strong> - {{ $disciplina->nome }}
+                    </label>
+                </div>
+            </div>
+        @empty
+            <p class="text-muted mb-0">Nenhuma disciplina cadastrada no sistema.</p>
+        @endforelse
+    </div>
+</div>
                             <div class="d-flex justify-content-end gap-2 mt-4">
                                 <a href="{{ route('alunos.index') }}" class="btn btn-outline-secondary px-4">Cancelar</a>
                                 <button type="submit" class="btn btn-primary px-4 shadow-sm">Atualizar Aluno</button>
