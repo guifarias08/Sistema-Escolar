@@ -30,6 +30,25 @@ class TurmaController extends Controller
         return redirect()->route('turmas.index')->with('sucesso', 'Turma cadastrada com sucesso!');
     }
 
+
+    public function edit(Turma $turma)
+    {
+        return view('turmas.edit', compact('turma'));
+    }
+
+
+    public function update(Request $request, Turma $turma)
+    {
+        $request->validate([
+            'nome' => 'required|string|max:255',
+            'turno' => 'required|string|max:50',
+        ]);
+
+        $turma->update($request->all());
+
+        return redirect()->route('turmas.index')->with('sucesso', 'Turma atualizada com sucesso!');
+    }
+
     public function destroy(Turma $turma)
     {
         $turma->delete();

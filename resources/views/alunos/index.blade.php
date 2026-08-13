@@ -9,17 +9,18 @@
 </head>
 <body class="bg-light">
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="{{ route('alunos.index') }}">
-                <i class="fa-solid fa-graduation-cap me-2"></i>Sistema Escolar
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link active" href="{{ route('alunos.index') }}">Alunos</a>
-                <a class="nav-link" href="{{ route('turmas.index') }}">Turmas</a>
-            </div>
+ <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="{{ route('dashboard') }}">
+            <i class="fa-solid fa-graduation-cap me-2"></i>Sistema Escolar
+        </a>
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link" href="{{ route('dashboard') }}"><i class="fa-solid fa-chart-line me-1"></i> Dashboard</a>
+            <a class="nav-link active" href="{{ route('alunos.index') }}"><i class="fa-solid fa-users me-1"></i> Alunos</a>
+            <a class="nav-link" href="{{ route('turmas.index') }}"><i class="fa-solid fa-chalkboard me-1"></i> Turmas</a>
         </div>
-    </nav>
+    </div>
+</nav>
 
     <div class="container">
         <div class="card shadow-sm border-0">
