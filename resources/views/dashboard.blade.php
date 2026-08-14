@@ -14,11 +14,11 @@
     <!-- Menu Superior -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="{{ route('dashboard') }}">
+            <a class="navbar-brand fw-bold" href="#">
                 <i class="fa-solid fa-graduation-cap me-2"></i>Sistema Escolar
             </a>
             <div class="navbar-nav">
-                <a class="nav-link active" href="{{ route('dashboard') }}"><i class="fa-solid fa-chart-line me-1"></i> Dashboard</a>
+                <a class="nav-link active" href="#"><i class="fa-solid fa-chart-line me-1"></i> Dashboard</a>
                 <a class="nav-link" href="{{ route('alunos.index') }}"><i class="fa-solid fa-users me-1"></i> Alunos</a>
                 <a class="nav-link" href="{{ route('turmas.index') }}"><i class="fa-solid fa-chalkboard me-1"></i> Turmas</a>
                 <a class="nav-link" href="{{ route('disciplinas.index') }}"><i class="fa-solid fa-book me-1"></i> Disciplinas</a>
