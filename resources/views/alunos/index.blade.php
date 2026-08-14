@@ -28,6 +28,9 @@
                 <a class="nav-link" href="{{ route('disciplinas.index') }}">
                     <i class="fa-solid fa-book me-1"></i> Disciplinas
                 </a>
+                <a class="nav-link" href="{{ route('notas.index') }}">
+              <i class="fa-solid fa-clipboard-check me-1"></i> Notas e Frequência
+             </a>
             </div>
         </div>
     </nav>

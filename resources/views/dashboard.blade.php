@@ -12,19 +12,30 @@
 <body class="bg-light">
 
     <!-- Menu Superior -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="#">
-                <i class="fa-solid fa-graduation-cap me-2"></i>Sistema Escolar
+ <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="{{ route('dashboard.index') }}">
+            <i class="fa-solid fa-graduation-cap me-2"></i>Sistema Escolar
+        </a>
+        <div class="navbar-nav ms-auto gap-2">
+            <a class="nav-link active fw-bold" href="{{ route('dashboard.index') }}">
+                <i class="fa-solid fa-chart-line me-1"></i> Dashboard
             </a>
-            <div class="navbar-nav">
-                <a class="nav-link active" href="#"><i class="fa-solid fa-chart-line me-1"></i> Dashboard</a>
-                <a class="nav-link" href="{{ route('alunos.index') }}"><i class="fa-solid fa-users me-1"></i> Alunos</a>
-                <a class="nav-link" href="{{ route('turmas.index') }}"><i class="fa-solid fa-chalkboard me-1"></i> Turmas</a>
-                <a class="nav-link" href="{{ route('disciplinas.index') }}"><i class="fa-solid fa-book me-1"></i> Disciplinas</a>
-            </div>
+            <a class="nav-link" href="{{ route('alunos.index') }}">
+                <i class="fa-solid fa-users me-1"></i> Alunos
+            </a>
+            <a class="nav-link" href="{{ route('turmas.index') }}">
+                <i class="fa-solid fa-chalkboard me-1"></i> Turmas
+            </a>
+            <a class="nav-link" href="{{ route('disciplinas.index') }}">
+                <i class="fa-solid fa-book me-1"></i> Disciplinas
+            </a>
+            <a class="nav-link" href="{{ route('notas.index') }}">
+                <i class="fa-solid fa-clipboard-check me-1"></i> Notas e Frequência
+            </a>
         </div>
-    </nav>
+    </div>
+</nav>
 
     <div class="container mb-5">
         <h2 class="fw-bold mb-4 text-secondary">Visão Geral do Sistema</h2>

@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão de Disciplinas - Sistema Escolar</title>
+    <title>Notas e Frequência - Sistema Escolar</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-light">
 
-    <!-- Navbar Completa -->
+    <!-- Navbar Padrão -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
         <div class="container">
             <a class="navbar-brand fw-bold" href="{{ route('dashboard.index') }}">
@@ -19,10 +19,8 @@
                 <a class="nav-link" href="{{ route('dashboard.index') }}"><i class="fa-solid fa-chart-line me-1"></i> Dashboard</a>
                 <a class="nav-link" href="{{ route('alunos.index') }}"><i class="fa-solid fa-users me-1"></i> Alunos</a>
                 <a class="nav-link" href="{{ route('turmas.index') }}"><i class="fa-solid fa-chalkboard me-1"></i> Turmas</a>
-                <a class="nav-link active fw-bold" href="{{ route('disciplinas.index') }}"><i class="fa-solid fa-book me-1"></i> Disciplinas</a>
-                <a class="nav-link" href="{{ route('notas.index') }}">
-             <i class="fa-solid fa-clipboard-check me-1"></i> Notas e Frequência
-            </a>
+                <a class="nav-link" href="{{ route('disciplinas.index') }}"><i class="fa-solid fa-book me-1"></i> Disciplinas</a>
+                <a class="nav-link active fw-bold" href="{{ route('notas.index') }}"><i class="fa-solid fa-clipboard-check me-1"></i> Notas e Frequência</a>
             </div>
         </div>
     </nav>
@@ -38,10 +36,10 @@
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                 <h4 class="m-0 font-weight-bold text-primary">
-                    <i class="fa-solid fa-book me-2"></i>Lista de Disciplinas
+                    <i class="fa-solid fa-clipboard-list me-2"></i>Boletim - Notas e Frequência
                 </h4>
-                <a href="{{ route('disciplinas.create') }}" class="btn btn-primary shadow-sm">
-                    <i class="fa-solid fa-plus me-1"></i> Nova Disciplina
+                <a href="{{ route('notas.create') }}" class="btn btn-primary shadow-sm">
+                    <i class="fa-solid fa-plus me-1"></i> Lançar Notas / Frequência
                 </a>
             </div>
 
@@ -50,46 +48,47 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>ID</th>
-                                <th>Código</th>
-                                <th>Nome da Disciplina</th>
-                                <th>Alunos Matriculados</th>
+                                <th>Aluno</th>
+                                <th>Disciplina</th>
+                                <th class="text-center">Nota 1</th>
+                                <th class="text-center">Nota 2</th>
+                                <th class="text-center">Média</th>
+                                <th class="text-center">Faltas</th>
+                                <th class="text-center">Situação</th>
                                 <th class="text-center">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($disciplinas as $disciplina)
+                            @forelse($notas as $nota)
                                 <tr>
-                                    <td class="fw-bold text-muted">#{{ $disciplina->id }}</td>
-                                    <td><span class="badge bg-dark">{{ $disciplina->codigo }}</span></td>
-                                    <td class="fw-semibold">{{ $disciplina->nome }}</td>
+                                    <td class="fw-semibold">{{ $nota->aluno->nome ?? 'Aluno não encontrado' }}</td>
                                     <td>
-                                        <!-- Contador de Alunos -->
-                                        <div class="mb-1">
-                                            <span class="badge bg-secondary">
-                                                <i class="fa-solid fa-user-group me-1"></i> {{ $disciplina->alunos_count }} Aluno(s)
-                                            </span>
-                                        </div>
-
-                                        <!-- Lista com Nomes dos Alunos -->
-                                        @if($disciplina->alunos->isNotEmpty())
-                                            <div class="d-flex flex-wrap gap-1">
-                                                @foreach($disciplina->alunos as $aluno)
-                                                    <span class="badge bg-info text-dark">
-                                                        <i class="fa-solid fa-user-graduate me-1"></i>{{ $aluno->nome }}
-                                                    </span>
-                                                @endforeach
-                                            </div>
+                                        <span class="badge bg-dark me-1">{{ $nota->disciplina->codigo ?? '' }}</span>
+                                        {{ $nota->disciplina->nome ?? 'N/A' }}
+                                    </td>
+                                    <td class="text-center">{{ $nota->nota_1 !== null ? number_format($nota->nota_1, 1) : '-' }}</td>
+                                    <td class="text-center">{{ $nota->nota_2 !== null ? number_format($nota->nota_2, 1) : '-' }}</td>
+                                    <td class="text-center fw-bold">
+                                        {{ $nota->media !== null ? number_format($nota->media, 1) : '-' }}
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary">{{ $nota->faltas }} falta(s)</span>
+                                    </td>
+                                    <td class="text-center">
+                                        @if($nota->situacao == 'Aprovado')
+                                            <span class="badge bg-success">Aprovado</span>
+                                        @elseif(str_contains($nota->situacao, 'Reprovado'))
+                                            <span class="badge bg-danger">{{ $nota->situacao }}</span>
                                         @else
-                                            <small class="text-muted italic">Nenhum aluno vinculado</small>
+                                            <span class="badge bg-warning text-dark">{{ $nota->situacao }}</span>
                                         @endif
                                     </td>
                                     <td class="text-center">
                                         <div class="d-flex justify-content-center gap-2">
-                                            <a href="{{ route('disciplinas.edit', $disciplina->id) }}" class="btn btn-sm btn-outline-warning" title="Editar">
+                                            <a href="{{ route('notas.edit', $nota->id) }}" class="btn btn-sm btn-outline-warning" title="Editar">
                                                 <i class="fa-solid fa-pen-to-square"></i>
                                             </a>
-                                            <form action="{{ route('disciplinas.destroy', $disciplina->id) }}" method="POST" onsubmit="return confirm('Excluir esta disciplina?');">
+                                            <form action="{{ route('notas.destroy', $nota->id) }}" method="POST" onsubmit="return confirm('Excluir esta nota?');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir">
@@ -101,7 +100,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted py-4">Nenhuma disciplina cadastrada.</td>
+                                    <td colspan="8" class="text-center text-muted py-4">Nenhum lançamento de nota cadastrado.</td>
                                 </tr>
                             @endforelse
                         </tbody>
