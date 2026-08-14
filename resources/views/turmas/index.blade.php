@@ -9,23 +9,30 @@
 </head>
 <body class="bg-light">
 
-    <!-- Menu Superior Padronizado -->
+    <!-- Navbar Completa Padrão -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
         <div class="container">
             <a class="navbar-brand fw-bold" href="{{ route('dashboard.index') }}">
                 <i class="fa-solid fa-graduation-cap me-2"></i>Sistema Escolar
             </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{{ route('dashboard.index') }}"><i class="fa-solid fa-chart-line me-1"></i> Dashboard</a>
-                <a class="nav-link" href="{{ route('alunos.index') }}"><i class="fa-solid fa-users me-1"></i> Alunos</a>
-                <a class="nav-link active" href="{{ route('turmas.index') }}"><i class="fa-solid fa-chalkboard me-1"></i> Turmas</a>
-                <a class="nav-link" href="{{ route('disciplinas.index') }}"><i class="fa-solid fa-book me-1"></i> Disciplinas</a>
+            <div class="navbar-nav ms-auto gap-2">
+                <a class="nav-link" href="{{ route('dashboard.index') }}">
+                    <i class="fa-solid fa-chart-line me-1"></i> Dashboard
+                </a>
+                <a class="nav-link" href="{{ route('alunos.index') }}">
+                    <i class="fa-solid fa-users me-1"></i> Alunos
+                </a>
+                <a class="nav-link active fw-bold" href="{{ route('turmas.index') }}">
+                    <i class="fa-solid fa-chalkboard me-1"></i> Turmas
+                </a>
+                <a class="nav-link" href="{{ route('disciplinas.index') }}">
+                    <i class="fa-solid fa-book me-1"></i> Disciplinas
+                </a>
             </div>
         </div>
     </nav>
 
     <div class="container">
-        <!-- Alerta de Sucesso -->
         @if (session('sucesso'))
             <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
                 <i class="fa-solid fa-circle-check me-2"></i>{{ session('sucesso') }}
@@ -36,10 +43,10 @@
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                 <h4 class="m-0 font-weight-bold text-primary">
-                    <i class="fa-solid fa-chalkboard-user me-2"></i>Lista de Turmas
+                    <i class="fa-solid fa-chalkboard me-2"></i>Lista de Turmas
                 </h4>
-                <div>
-                    <a href="{{ route('alunos.index') }}" class="btn btn-outline-secondary me-2">
+                <div class="d-flex gap-2">
+                    <a href="{{ route('alunos.index') }}" class="btn btn-outline-primary shadow-sm">
                         <i class="fa-solid fa-users me-1"></i> Ver Alunos
                     </a>
                     <a href="{{ route('turmas.create') }}" class="btn btn-primary shadow-sm">
@@ -56,7 +63,7 @@
                                 <th>ID</th>
                                 <th>Nome da Turma</th>
                                 <th>Turno</th>
-                                <th>Total de Alunos</th>
+                                <th>Alunos Matriculados</th>
                                 <th class="text-center">Ações</th>
                             </tr>
                         </thead>
@@ -69,23 +76,35 @@
                                         <span class="badge bg-info text-dark">{{ $turma->turno }}</span>
                                     </td>
                                     <td>
-                                        <span class="badge bg-secondary">
-                                            <i class="fa-solid fa-user-group me-1"></i> {{ $turma->alunos_count }} Aluno(s)
-                                        </span>
+                                        <!-- Contador de Alunos na Turma -->
+                                        <div class="mb-1">
+                                            <span class="badge bg-secondary">
+                                                <i class="fa-solid fa-user-group me-1"></i> {{ $turma->alunos_count }} Aluno(s)
+                                            </span>
+                                        </div>
+
+                                        <!-- Nomes dos Alunos Matriculados na Turma -->
+                                        @if($turma->alunos->isNotEmpty())
+                                            <div class="d-flex flex-wrap gap-1">
+                                                @foreach($turma->alunos as $aluno)
+                                                    <span class="badge bg-info text-dark">
+                                                        <i class="fa-solid fa-user-graduate me-1"></i>{{ $aluno->nome }}
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <small class="text-muted italic">Nenhum aluno vinculado</small>
+                                        @endif
                                     </td>
                                     <td class="text-center">
-                                        <!-- Div Flex para alinhar os botões lado a lado -->
                                         <div class="d-flex justify-content-center gap-2">
-                                            <!-- Botão Editar (Lápis Amarelo) -->
-                                            <a href="{{ route('turmas.edit', $turma->id) }}" class="btn btn-sm btn-outline-warning" title="Editar Turma">
+                                            <a href="{{ route('turmas.edit', $turma->id) }}" class="btn btn-sm btn-outline-warning" title="Editar">
                                                 <i class="fa-solid fa-pen-to-square"></i>
                                             </a>
-
-                                            <!-- Botão Excluir (Lixeira Vermelha) -->
-                                            <form action="{{ route('turmas.destroy', $turma->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta turma?');">
+                                            <form action="{{ route('turmas.destroy', $turma->id) }}" method="POST" onsubmit="return confirm('Excluir esta turma?');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir Turma">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir">
                                                     <i class="fa-solid fa-trash"></i>
                                                 </button>
                                             </form>

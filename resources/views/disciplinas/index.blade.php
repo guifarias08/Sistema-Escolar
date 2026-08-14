@@ -9,16 +9,17 @@
 </head>
 <body class="bg-light">
 
+    <!-- Navbar Completa -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
         <div class="container">
-                  <a class="navbar-brand fw-bold" href="{{ route('dashboard.index') }}">
+            <a class="navbar-brand fw-bold" href="{{ route('dashboard.index') }}">
                 <i class="fa-solid fa-graduation-cap me-2"></i>Sistema Escolar
             </a>
-            <div class="navbar-nav ms-auto">
+            <div class="navbar-nav ms-auto gap-2">
                 <a class="nav-link" href="{{ route('dashboard.index') }}"><i class="fa-solid fa-chart-line me-1"></i> Dashboard</a>
                 <a class="nav-link" href="{{ route('alunos.index') }}"><i class="fa-solid fa-users me-1"></i> Alunos</a>
                 <a class="nav-link" href="{{ route('turmas.index') }}"><i class="fa-solid fa-chalkboard me-1"></i> Turmas</a>
-                <a class="nav-link active" href="{{ route('disciplinas.index') }}"><i class="fa-solid fa-book me-1"></i> Disciplinas</a>
+                <a class="nav-link active fw-bold" href="{{ route('disciplinas.index') }}"><i class="fa-solid fa-book me-1"></i> Disciplinas</a>
             </div>
         </div>
     </nav>
@@ -60,9 +61,25 @@
                                     <td><span class="badge bg-dark">{{ $disciplina->codigo }}</span></td>
                                     <td class="fw-semibold">{{ $disciplina->nome }}</td>
                                     <td>
-                                        <span class="badge bg-secondary">
-                                            <i class="fa-solid fa-user-group me-1"></i> {{ $disciplina->alunos_count }} Aluno(s)
-                                        </span>
+                                        <!-- Contador de Alunos -->
+                                        <div class="mb-1">
+                                            <span class="badge bg-secondary">
+                                                <i class="fa-solid fa-user-group me-1"></i> {{ $disciplina->alunos_count }} Aluno(s)
+                                            </span>
+                                        </div>
+
+                                        <!-- Lista com Nomes dos Alunos -->
+                                        @if($disciplina->alunos->isNotEmpty())
+                                            <div class="d-flex flex-wrap gap-1">
+                                                @foreach($disciplina->alunos as $aluno)
+                                                    <span class="badge bg-info text-dark">
+                                                        <i class="fa-solid fa-user-graduate me-1"></i>{{ $aluno->nome }}
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <small class="text-muted italic">Nenhum aluno vinculado</small>
+                                        @endif
                                     </td>
                                     <td class="text-center">
                                         <div class="d-flex justify-content-center gap-2">

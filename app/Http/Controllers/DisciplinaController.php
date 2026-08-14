@@ -9,13 +9,12 @@ use Illuminate\Http\Request;
 
 class DisciplinaController extends Controller
 {
-    public function index()
-{
+  public function index()
+    {
 
-    $disciplinas = Disciplina::with('alunos')->withCount('alunos')->get();
-    
-    return view('disciplinas.index', compact('disciplinas'));
-}
+        $disciplinas = Disciplina::with('alunos')->withCount('alunos')->get();
+        return view('disciplinas.index', compact('disciplinas'));
+    }
 
     public function create()
     {

@@ -7,9 +7,11 @@ use Illuminate\Http\Request;
 
 class TurmaController extends Controller
 {
-    public function index()
+   public function index()
     {
-        $turmas = Turma::withCount('alunos')->get();
+
+        $turmas = Turma::with('alunos')->withCount('alunos')->get();
+
         return view('turmas.index', compact('turmas'));
     }
 
