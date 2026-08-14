@@ -6,7 +6,7 @@ use App\Http\Controllers\TurmaController;
 use App\Http\Controllers\DisciplinaController;
 use App\Http\Controllers\DashboardController;
 
-// Rota inicial
+
 Route::get('/', [AlunoController::class, 'index']);
 Route::resource('dashboard', DashboardController::class);
 Route::resource('alunos', AlunoController::class);

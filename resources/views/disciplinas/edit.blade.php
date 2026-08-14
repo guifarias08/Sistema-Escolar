@@ -11,11 +11,11 @@
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="{{ route('dashboard') }}">
+            <a class="navbar-brand fw-bold" href="{{ route('dashboard.index') }}">
                 <i class="fa-solid fa-graduation-cap me-2"></i>Sistema Escolar
             </a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
+                <a class="nav-link" href="{{ route('dashboard.index') }}">Dashboard</a>
                 <a class="nav-link" href="{{ route('alunos.index') }}">Alunos</a>
                 <a class="nav-link" href="{{ route('turmas.index') }}">Turmas</a>
                 <a class="nav-link active" href="{{ route('disciplinas.index') }}">Disciplinas</a>
