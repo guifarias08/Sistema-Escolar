@@ -9,12 +9,18 @@ use Illuminate\Http\Request;
 
 class AlunoController extends Controller
 {
-    public function index()
-    {
-        // Traz o aluno com a turma E com as disciplinas
-        $alunos = Aluno::with(['turma', 'disciplinas'])->get();
-        return view('alunos.index', compact('alunos'));
-    }
+    public function index(Request $request)
+{
+    $busca = $request->input('busca');
+
+    
+    $alunos = Aluno::when($busca, function ($query, $busca) {
+        return $query->where('nome', 'LIKE', "%{$busca}%")
+                     ->orWhere('cpf', 'LIKE', "%{$busca}%");
+    })->paginate(10);
+
+    return view('alunos.index', compact('alunos', 'busca'));
+}
 
     public function create()
     {
