@@ -6,21 +6,22 @@ use App\Models\Aluno;
 use App\Models\Turma;
 use App\Models\Disciplina;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class AlunoController extends Controller
 {
     public function index(Request $request)
-{
-    $busca = $request->input('busca');
+    {
+        $busca = $request->get('busca');
 
-    
-    $alunos = Aluno::when($busca, function ($query, $busca) {
-        return $query->where('nome', 'LIKE', "%{$busca}%")
-                     ->orWhere('cpf', 'LIKE', "%{$busca}%");
-    })->paginate(10);
+        $alunos = Aluno::when($busca, function ($query, $busca) {
+            return $query->where('nome', 'like', "%{$busca}%")
+                         ->orWhere('cpf', 'like', "%{$busca}%");
+        })->paginate(10);
 
-    return view('alunos.index', compact('alunos', 'busca'));
-}
+        return view('alunos.index', compact('alunos', 'busca'));
+    }
 
     public function create()
     {
@@ -31,21 +32,32 @@ class AlunoController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $dados = $request->validate([
             'nome' => 'required|string|max:255',
-            'email' => 'required|email|unique:alunos,email',
-            'cpf' => 'required|string|unique:alunos,cpf',
-            'data_nascimento' => 'required|date',
-            'turma_id' => 'required|exists:turmas,id',
-            'disciplinas' => 'nullable|array',
-            'disciplinas.*' => 'exists:disciplinas,id',
+            'email' => 'nullable|email|max:255',
+            'cpf' => 'required|string',
+            'data_nascimento' => 'required',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'turma_id' => 'nullable|exists:turmas,id',
+            'disciplinas' => 'nullable|array'
         ]);
 
-        // 1. Grava o aluno no banco
-        $aluno = Aluno::create($request->all());
+        // Converte DD/MM/AAAA em AAAA-MM-DD
+        if (!empty($dados['data_nascimento'])) {
+            try {
+                $dados['data_nascimento'] = Carbon::createFromFormat('d/m/Y', $dados['data_nascimento'])->format('Y-m-d');
+            } catch (\Exception $e) {}
+        }
 
-        // 2. Grava as disciplinas marcadas na tabela pivô
-        $aluno->disciplinas()->sync($request->input('disciplinas', []));
+        if ($request->hasFile('foto')) {
+            $dados['foto'] = $request->file('foto')->store('alunos', 'public');
+        }
+
+        $aluno = Aluno::create($dados);
+
+        if ($request->has('disciplinas')) {
+            $aluno->disciplinas()->sync($request->disciplinas);
+        }
 
         return redirect()->route('alunos.index')->with('sucesso', 'Aluno cadastrado com sucesso!');
     }
@@ -59,20 +71,30 @@ class AlunoController extends Controller
 
     public function update(Request $request, Aluno $aluno)
     {
-        $request->validate([
+        $dados = $request->validate([
             'nome' => 'required|string|max:255',
-            'email' => 'required|email|unique:alunos,email,' . $aluno->id,
-            'cpf' => 'required|string|unique:alunos,cpf,' . $aluno->id,
-            'data_nascimento' => 'required|date',
-            'turma_id' => 'required|exists:turmas,id',
-            'disciplinas' => 'nullable|array',
-            'disciplinas.*' => 'exists:disciplinas,id',
+            'email' => 'nullable|email|max:255',
+            'cpf' => 'required|string',
+            'data_nascimento' => 'required',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'turma_id' => 'nullable|exists:turmas,id',
+            'disciplinas' => 'nullable|array'
         ]);
 
-        // 1. Atualiza dados do aluno
-        $aluno->update($request->all());
+        if (!empty($dados['data_nascimento'])) {
+            try {
+                $dados['data_nascimento'] = Carbon::createFromFormat('d/m/Y', $dados['data_nascimento'])->format('Y-m-d');
+            } catch (\Exception $e) {}
+        }
 
-        // 2. Atualiza/Sincroniza as disciplinas na tabela pivô
+        if ($request->hasFile('foto')) {
+            if ($aluno->foto && Storage::disk('public')->exists($aluno->foto)) {
+                Storage::disk('public')->delete($aluno->foto);
+            }
+            $dados['foto'] = $request->file('foto')->store('alunos', 'public');
+        }
+
+        $aluno->update($dados);
         $aluno->disciplinas()->sync($request->input('disciplinas', []));
 
         return redirect()->route('alunos.index')->with('sucesso', 'Aluno atualizado com sucesso!');
@@ -80,9 +102,13 @@ class AlunoController extends Controller
 
     public function destroy(Aluno $aluno)
     {
+        if ($aluno->foto && Storage::disk('public')->exists($aluno->foto)) {
+            Storage::disk('public')->delete($aluno->foto);
+        }
+
+        $aluno->disciplinas()->detach();
         $aluno->delete();
+
         return redirect()->route('alunos.index')->with('sucesso', 'Aluno excluído com sucesso!');
     }
-
-    // ... método destroy ...
 }

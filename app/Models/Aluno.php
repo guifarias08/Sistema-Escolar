@@ -4,12 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Aluno extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nome', 'email', 'cpf', 'data_nascimento', 'turma_id'];
+    protected $fillable = [
+        'nome',
+        'email',
+        'cpf',
+        'data_nascimento',
+        'foto',
+        'turma_id'
+    ];
 
     public function turma()
     {
@@ -19,5 +27,15 @@ class Aluno extends Model
     public function disciplinas()
     {
         return $this->belongsToMany(Disciplina::class);
+    }
+
+    public function getDataNascimentoAttribute($value)
+    {
+        if (!$value) return null;
+        try {
+            return Carbon::parse($value)->format('d/m/Y');
+        } catch (\Exception $e) {
+            return $value;
+        }
     }
 }

@@ -68,20 +68,30 @@
                 <!-- Tabela de Alunos -->
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Nome</th>
-                                <th>CPF</th>
-                                <th>Data de Nascimento</th>
-                                <th class="text-center">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($alunos as $aluno)
-                                <tr>
-                                    <td class="fw-semibold">{{ $aluno->nome }}</td>
-                                    <td>{{ $aluno->cpf }}</td>
-                                    <td>{{ $aluno->data_nascimento }}</td>
+    <thead class="table-light">
+        <tr>
+            <th style="width: 60px;">Foto</th>
+            <th>Nome</th>
+            <th>CPF</th>
+            <th>Data de Nascimento</th>
+            <th class="text-center">Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse($alunos as $aluno)
+            <tr>
+                <td>
+                   <td>
+             @if($aluno->foto)
+             <img src="{{ asset('storage/' . $aluno->foto) }}" alt="{{ $aluno->nome }}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+            @else
+          <img src="https://ui-avatars.com/api/?name={{ urlencode($aluno->nome) }}&background=0D6EFD&color=fff&size=40" alt="{{ $aluno->nome }}" class="rounded-circle">
+             @endif
+            </td>
+                </td>
+                <td class="fw-semibold">{{ $aluno->nome }}</td>
+                <td>{{ $aluno->cpf }}</td>
+                <td>{{ $aluno->data_nascimento }}</td>
                                     <td class="text-center">
                                         <div class="d-flex justify-content-center gap-2">
                                             <a href="{{ route('alunos.edit', $aluno->id) }}" class="btn btn-sm btn-outline-warning" title="Editar">
@@ -107,7 +117,7 @@
                     </table>
                 </div>
 
-   
+                <!-- Paginação -->
                 <div class="d-flex justify-content-center mt-4">
                     {{ $alunos->appends(request()->query())->links('pagination::bootstrap-5') }}
                 </div>
@@ -118,7 +128,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-
+        // Modal animado do SweetAlert2 para Deletar
         document.querySelectorAll('.form-deletar').forEach(form => {
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -140,7 +150,7 @@
             });
         });
 
-      
+        // Toast de confirmação para mensagens de sucesso
         @if(session('sucesso'))
             Swal.fire({
                 icon: 'success',
