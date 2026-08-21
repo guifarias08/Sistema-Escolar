@@ -26,7 +26,7 @@ class Aluno extends Model
 
     public function disciplinas()
     {
-        return $this->belongsToMany(Disciplina::class);
+        return $this->belongsToMany(Disciplina::class,'aluno_disciplina');
     }
 
     public function getDataNascimentoAttribute($value)

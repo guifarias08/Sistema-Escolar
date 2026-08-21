@@ -24,44 +24,56 @@ class AlunoController extends Controller
     }
 
     public function create()
-    {
-        $turmas = Turma::all();
-        $disciplinas = Disciplina::all();
-        return view('alunos.create', compact('turmas', 'disciplinas'));
+    {    $turmas = Turma::orderBy('nome')->get();
+         $disciplinas = Disciplina::orderBy('nome')->get();
+
+    return view('alunos.create', compact('turmas', 'disciplinas'));
     }
 
-    public function store(Request $request)
-    {
-        $dados = $request->validate([
-            'nome' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'cpf' => 'required|string',
-            'data_nascimento' => 'required',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'turma_id' => 'nullable|exists:turmas,id',
-            'disciplinas' => 'nullable|array'
-        ]);
+ public function store(Request $request)
+{
+    $dados = $request->validate([
+        'nome' => 'required|string|max:255',
+        'email' => 'nullable|email|max:255',
+        'cpf' => 'required|string',
+        'data_nascimento' => 'required',
+        'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
 
+        'turma_id' => 'nullable|exists:turmas,id',
 
-        if (!empty($dados['data_nascimento'])) {
-            try {
-                $dados['data_nascimento'] = Carbon::createFromFormat('d/m/Y', $dados['data_nascimento'])->format('Y-m-d');
-            } catch (\Exception $e) {}
+        'disciplinas' => 'nullable|array',
+        'disciplinas.*' => 'exists:disciplinas,id',
+    ]);
+
+    if (!empty($dados['data_nascimento'])) {
+        try {
+            $dados['data_nascimento'] = Carbon::createFromFormat(
+                'd/m/Y',
+                $dados['data_nascimento']
+            )->format('Y-m-d');
+        } catch (\Exception $e) {
+          
         }
-
-        if ($request->hasFile('foto')) {
-            $dados['foto'] = $request->file('foto')->store('alunos', 'public');
-        }
-
-        $aluno = Aluno::create($dados);
-
-        if ($request->has('disciplinas')) {
-            $aluno->disciplinas()->sync($request->disciplinas);
-        }
-
-        return redirect()->route('alunos.index')->with('sucesso', 'Aluno cadastrado com sucesso!');
     }
 
+    if ($request->hasFile('foto')) {
+        $dados['foto'] = $request->file('foto')
+            ->store('alunos', 'public');
+    }
+
+ 
+    unset($dados['disciplinas']);
+
+    $aluno = Aluno::create($dados);
+
+    if ($request->filled('disciplinas')) {
+        $aluno->disciplinas()->sync($request->disciplinas);
+    }
+
+    return redirect()
+        ->route('alunos.index')
+        ->with('sucesso', 'Aluno cadastrado com sucesso!');
+}
     public function edit(Aluno $aluno)
     {
         $turmas = Turma::all();

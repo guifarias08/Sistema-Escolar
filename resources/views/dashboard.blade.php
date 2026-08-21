@@ -56,7 +56,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+                </div>
 
             <!-- Card 2: Total Turmas -->
             <div class="col-md-3">
