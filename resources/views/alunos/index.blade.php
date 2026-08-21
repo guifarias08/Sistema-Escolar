@@ -62,46 +62,82 @@
                                 </a>
                             @endif
                         </div>
-                    </div>
+                    </div>s
                 </form>
-
-                <!-- Tabela de Alunos -->
-                <div class="table-responsive">
+        <!-- Tabela de Alunos -->
+                    <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-    <thead class="table-light">
-        <tr>
-            <th style="width: 60px;">Foto</th>
-            <th>Nome</th>
-            <th>CPF</th>
-            <th>Data de Nascimento</th>
-            <th class="text-center">Ações</th>
-        </tr>
-    </thead>
-    <tbody>
-        @forelse($alunos as $aluno)
-            <tr>
-                <td>
-                   <td>
-             @if($aluno->foto)
-             <img src="{{ asset('storage/' . $aluno->foto) }}" alt="{{ $aluno->nome }}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
-            @else
-          <img src="https://ui-avatars.com/api/?name={{ urlencode($aluno->nome) }}&background=0D6EFD&color=fff&size=40" alt="{{ $aluno->nome }}" class="rounded-circle">
-             @endif
-            </td>
-                </td>
-                <td class="fw-semibold">{{ $aluno->nome }}</td>
-                <td>{{ $aluno->cpf }}</td>
-                <td>{{ $aluno->data_nascimento }}</td>
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 60px;">Foto</th>
+                                <th>Nome</th>
+                                <th>CPF</th>
+                                <th>Data de Nascimento</th>
+                                <th class="text-center">Ações</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @forelse($alunos as $aluno)
+                                <tr>
+                                    {{-- FOTO --}}
+                                    <td>
+                                        @if($aluno->foto)
+                                            <img
+                                                src="{{ asset('storage/' . $aluno->foto) }}"
+                                                alt="{{ $aluno->nome }}"
+                                                class="rounded-circle"
+                                                style="width: 40px; height: 40px; object-fit: cover;"
+                                            >
+                                        @else
+                                            <img
+                                                src="https://ui-avatars.com/api/?name={{ urlencode($aluno->nome) }}&background=0D6EFD&color=fff&size=40"
+                                                alt="{{ $aluno->nome }}"
+                                                class="rounded-circle"
+                                                style="width: 40px; height: 40px;"
+                                            >
+                                        @endif
+                                    </td>
+
+                                    {{-- NOME --}}
+                                    <td class="fw-semibold">
+                                        {{ $aluno->nome }}
+                                    </td>
+
+                                    {{-- CPF --}}
+                                    <td>
+                                        {{ $aluno->cpf }}
+                                    </td>
+
+                                    {{-- DATA DE NASCIMENTO --}}
+                                    <td>
+                                        {{ $aluno->data_nascimento }}
+                                    </td>
+
+                                    {{-- AÇÕES --}}
                                     <td class="text-center">
                                         <div class="d-flex justify-content-center gap-2">
-                                            <a href="{{ route('alunos.edit', $aluno->id) }}" class="btn btn-sm btn-outline-warning" title="Editar">
+                                            <a
+                                                href="{{ route('alunos.edit', $aluno->id) }}"
+                                                class="btn btn-sm btn-outline-warning"
+                                                title="Editar"
+                                            >
                                                 <i class="fa-solid fa-pen-to-square"></i>
                                             </a>
 
-                                            <form action="{{ route('alunos.destroy', $aluno->id) }}" method="POST" class="d-inline form-deletar">
+                                            <form
+                                                action="{{ route('alunos.destroy', $aluno->id) }}"
+                                                method="POST"
+                                                class="d-inline form-deletar"
+                                            >
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir">
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    title="Excluir"
+                                                >
                                                     <i class="fa-solid fa-trash"></i>
                                                 </button>
                                             </form>
