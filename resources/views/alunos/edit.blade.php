@@ -63,6 +63,20 @@
                                     <label class="form-label fw-bold">CPF</label>
                                     <input type="text" name="cpf" id="cpf" class="form-control" value="{{ old('cpf', $aluno->cpf) }}" required>
                                 </div>
+                                <div class="mb-3">
+                                <label class="form-label fw-bold">Turma</label>
+
+                                <select name="turma_id" class="form-select" required>
+                                    <option value="">Selecione uma turma</option>
+
+                                    @foreach($turmas as $turma)
+                                        <option value="{{ $turma->id }}"
+                                            {{ old('turma_id', $aluno->turma_id) == $turma->id ? 'selected' : '' }}>
+                                            {{ $turma->nome }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label fw-bold">Data de Nascimento</label>
                                     <input type="text" name="data_nascimento" id="data_nascimento" class="form-control" value="{{ old('data_nascimento', $aluno->data_nascimento) }}" required>

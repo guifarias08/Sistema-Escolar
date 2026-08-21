@@ -52,7 +52,7 @@
                 <form action="{{ route('alunos.index') }}" method="GET" class="row g-2 mb-4">
                     <div class="col-md-5">
                         <div class="input-group">
-                            <input type="text" name="busca" class="form-control" placeholder="Buscar por Nome ou CPF..." value="{{ $busca ?? '' }}">
+                           <input type="text" name="busca" class="form-control" placeholder="Buscar por Nome ou CPF..." value="{{ $busca ?? '' }}">
                             <button class="btn btn-outline-primary" type="submit">
                                 <i class="fa-solid fa-magnifying-glass"></i> Buscar
                             </button>
@@ -62,7 +62,7 @@
                                 </a>
                             @endif
                         </div>
-                    </div>s
+                    </div>
                 </form>
         <!-- Tabela de Alunos -->
                     <div class="table-responsive">

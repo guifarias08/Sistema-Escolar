@@ -42,7 +42,7 @@ class AlunoController extends Controller
             'disciplinas' => 'nullable|array'
         ]);
 
-        // Converte DD/MM/AAAA em AAAA-MM-DD
+
         if (!empty($dados['data_nascimento'])) {
             try {
                 $dados['data_nascimento'] = Carbon::createFromFormat('d/m/Y', $dados['data_nascimento'])->format('Y-m-d');
