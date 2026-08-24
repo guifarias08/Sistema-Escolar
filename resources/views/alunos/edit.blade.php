@@ -37,7 +37,7 @@
 
                             <div class="text-center mb-3">
                                 @if($aluno->foto)
-                                    <img src="{{ asset('storage/' . $aluno->foto) }}" class="rounded-circle img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;">
+                                    <img src="{{ asset('storage/' . $aluno->foto) }}" class="rounded-circle img-thumbnail" style="width: 200px; height: 200px   ; object-fit: cover;">
                                 @else
                                     <img src="https://ui-avatars.com/api/?name={{ urlencode($aluno->nome) }}&background=0D6EFD&color=fff&size=100" class="rounded-circle img-thumbnail">
                                 @endif
@@ -52,7 +52,7 @@
                                 <label class="form-label fw-bold">Nome Completo</label>
                                 <input type="text" name="nome" class="form-control" value="{{ old('nome', $aluno->nome) }}" required>
                             </div>
-
+                            
                             <div class="mb-3">
                                 <label class="form-label fw-bold">E-mail</label>
                                 <input type="email" name="email" class="form-control" value="{{ old('email', $aluno->email) }}">
