@@ -3,17 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\Disciplina;
-use App\Models\Turma;
-use App\Models\Aluno;
 use Illuminate\Http\Request;
 
 class DisciplinaController extends Controller
 {
-  public function index()
+    public function index(Request $request)
     {
+        $busca = $request->get('busca');
+        $disciplinas = Disciplina::withCount('alunos')
+            ->when($busca, function ($query, $value) {
+                $query->where(function ($subQuery) use ($value) {
+                    $subQuery->where('nome', 'like', "%{$value}%")
+                        ->orWhere('codigo', 'like', "%{$value}%");
+                });
+            })
+            ->orderBy('nome')
+            ->paginate(10)
+            ->withQueryString();
 
-        $disciplinas = Disciplina::with('alunos')->withCount('alunos')->get();
-        return view('disciplinas.index', compact('disciplinas'));
+        return view('disciplinas.index', compact('disciplinas', 'busca'));
     }
 
     public function create()
@@ -42,7 +50,7 @@ class DisciplinaController extends Controller
     {
         $request->validate([
             'nome' => 'required|string|max:255',
-            'codigo' => 'required|string|max:20|unique:disciplinas,codigo,' . $disciplina->id,
+            'codigo' => 'required|string|max:20|unique:disciplinas,codigo,'.$disciplina->id,
         ]);
 
         $disciplina->update($request->all());

@@ -2,23 +2,41 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Nota;
 use App\Models\Aluno;
 use App\Models\Disciplina;
+use App\Models\Nota;
 use Illuminate\Http\Request;
 
 class NotaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $notas = Nota::with(['aluno', 'disciplina'])->get();
-        return view('notas.index', compact('notas'));
+        $busca = $request->get('busca');
+        $situacao = $request->get('situacao');
+        $disciplinaId = $request->get('disciplina_id');
+
+        $notas = Nota::with(['aluno.turma', 'disciplina'])
+            ->when($busca, fn ($query, $value) => $query->whereHas('aluno', fn ($aluno) => $aluno->where('nome', 'like', "%{$value}%")))
+            ->when($situacao, function ($query, $value) {
+                $value === 'Reprovado'
+                    ? $query->where('situacao', 'like', 'Reprovado%')
+                    : $query->where('situacao', $value);
+            })
+            ->when($disciplinaId, fn ($query, $id) => $query->where('disciplina_id', $id))
+            ->latest()
+            ->paginate(12)
+            ->withQueryString();
+
+        $disciplinas = Disciplina::orderBy('nome')->get();
+
+        return view('notas.index', compact('notas', 'disciplinas', 'busca', 'situacao', 'disciplinaId'));
     }
 
     public function create()
     {
-        $alunos = Aluno::all();
-        $disciplinas = Disciplina::all();
+        $alunos = Aluno::orderBy('nome')->get();
+        $disciplinas = Disciplina::orderBy('nome')->get();
+
         return view('notas.create', compact('alunos', 'disciplinas'));
     }
 
@@ -58,7 +76,7 @@ class NotaController extends Controller
                 'nota_2' => $n2,
                 'media' => $media,
                 'faltas' => $request->faltas,
-                'situacao' => $situacao
+                'situacao' => $situacao,
             ]
         );
 
@@ -67,8 +85,9 @@ class NotaController extends Controller
 
     public function edit(Nota $nota)
     {
-        $alunos = Aluno::all();
-        $disciplinas = Disciplina::all();
+        $alunos = Aluno::orderBy('nome')->get();
+        $disciplinas = Disciplina::orderBy('nome')->get();
+
         return view('notas.edit', compact('nota', 'alunos', 'disciplinas'));
     }
 
@@ -117,6 +136,7 @@ class NotaController extends Controller
     public function destroy(Nota $nota)
     {
         $nota->delete();
+
         return redirect()->route('notas.index')->with('sucesso', 'Nota excluída!');
     }
 }

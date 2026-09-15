@@ -1,218 +1,138 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Sistema Escolar</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js para os gráficos -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body class="bg-light">
+@extends('layouts.app')
 
-    <!-- Menu Superior -->
- <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
-    <div class="container">
-        <a class="navbar-brand fw-bold" href="{{ route('dashboard.index') }}">
-            <i class="fa-solid fa-graduation-cap me-2"></i>Sistema Escolar
+@section('title', 'Dashboard')
+
+@push('head')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+@endpush
+
+@section('content')
+    <x-page-header
+        eyebrow="Visão geral"
+        title="Bom dia, Administrador!"
+        description="Acompanhe os principais indicadores e as pendências acadêmicas da escola."
+    >
+        <a href="{{ route('alunos.create') }}" class="btn btn-secondary"><i class="fa-solid fa-user-plus"></i>Novo aluno</a>
+        <a href="{{ route('notas.create') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i>Lançar nota</a>
+    </x-page-header>
+
+    <section class="stats-grid" aria-label="Indicadores principais">
+        <a href="{{ route('alunos.index') }}" class="stat-card">
+            <div class="stat-top"><span class="stat-label">Alunos matriculados</span><span class="stat-icon"><i class="fa-solid fa-user-graduate"></i></span></div>
+            <div class="stat-value">{{ number_format($totalAlunos, 0, ',', '.') }}</div>
+            <div class="stat-meta">Cadastros ativos no sistema</div>
         </a>
-        <div class="navbar-nav ms-auto gap-2">
-            <a class="nav-link active fw-bold" href="{{ route('dashboard.index') }}">
-                <i class="fa-solid fa-chart-line me-1"></i> Dashboard
-            </a>
-            <a class="nav-link" href="{{ route('alunos.index') }}">
-                <i class="fa-solid fa-users me-1"></i> Alunos
-            </a>
-            <a class="nav-link" href="{{ route('turmas.index') }}">
-                <i class="fa-solid fa-chalkboard me-1"></i> Turmas
-            </a>
-            <a class="nav-link" href="{{ route('disciplinas.index') }}">
-                <i class="fa-solid fa-book me-1"></i> Disciplinas
-            </a>
-            <a class="nav-link" href="{{ route('notas.index') }}">
-                <i class="fa-solid fa-clipboard-check me-1"></i> Notas e Frequência
-            </a>
-        </div>
-    </div>
-</nav>
+        <a href="{{ route('turmas.index') }}" class="stat-card success">
+            <div class="stat-top"><span class="stat-label">Turmas ativas</span><span class="stat-icon"><i class="fa-solid fa-people-roof"></i></span></div>
+            <div class="stat-value">{{ number_format($totalTurmas, 0, ',', '.') }}</div>
+            <div class="stat-meta">{{ $totalDisciplinas }} disciplinas disponíveis</div>
+        </a>
+        <a href="{{ route('notas.index') }}" class="stat-card info">
+            <div class="stat-top"><span class="stat-label">Média geral</span><span class="stat-icon"><i class="fa-solid fa-chart-line"></i></span></div>
+            <div class="stat-value">{{ $mediaGeral !== null ? number_format($mediaGeral, 1, ',', '.') : '—' }}</div>
+            <div class="stat-meta">Média dos lançamentos concluídos</div>
+        </a>
+        <a href="{{ route('notas.index', ['situacao' => 'Reprovado']) }}" class="stat-card {{ $alunosEmRisco > 0 ? 'danger' : 'success' }}">
+            <div class="stat-top"><span class="stat-label">Alunos em atenção</span><span class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></span></div>
+            <div class="stat-value">{{ $alunosEmRisco }}</div>
+            <div class="stat-meta">Nota baixa ou excesso de faltas</div>
+        </a>
+    </section>
 
-    <div class="container mb-5">
-        <h2 class="fw-bold mb-4 text-secondary">Visão Geral do Sistema</h2>
-
-        <!-- Cards Indicadores -->
-       <!-- Cards Indicadores (4 Cards em linha) -->
-        <div class="row g-4 mb-4">
-            <!-- Card 1: Total Alunos -->
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm border-start border-primary border-4 p-3 h-100">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="text-muted fw-semibold small text-uppercase">Total de Alunos</span>
-                            <h2 class="fw-bold m-0 mt-1 text-primary">{{ $totalAlunos }}</h2>
-                        </div>
-                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary fs-3">
-                            <i class="fa-solid fa-user-graduate"></i>
-                        </div>
-                    </div>
-                </div>
-                </div>
-
-            <!-- Card 2: Total Turmas -->
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm border-start border-success border-4 p-3 h-100">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="text-muted fw-semibold small text-uppercase">Total de Turmas</span>
-                            <h2 class="fw-bold m-0 mt-1 text-success">{{ $totalTurmas }}</h2>
-                        </div>
-                        <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success fs-3">
-                            <i class="fa-solid fa-school"></i>
-                        </div>
-                    </div>
-                </div>
+    <section class="content-grid">
+        <article class="panel">
+            <div class="panel-header">
+                <div><h2>Alunos por turno</h2><p>Distribuição atual das matrículas</p></div>
+                <span class="badge badge-neutral"><i class="fa-regular fa-calendar"></i>{{ date('Y') }}</span>
             </div>
+            <div class="panel-body"><div class="chart-wrap"><canvas id="turnosChart"></canvas></div></div>
+        </article>
 
-            <!-- Card 3: Maior Turma -->
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm border-start border-warning border-4 p-3 h-100">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="text-muted fw-semibold small text-uppercase">Maior Turma</span>
-                            <h5 class="fw-bold m-0 mt-1 text-dark">
-                                {{ $turmaMaisCheia ? $turmaMaisCheia->nome : 'Nenhuma' }}
-                            </h5>
-                            <small class="text-muted">
-                                {{ $turmaMaisCheia ? $turmaMaisCheia->alunos_count . ' alunos' : '0 alunos' }}
-                            </small>
-                        </div>
-                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning fs-3">
-                            <i class="fa-solid fa-crown"></i>
-                        </div>
-                    </div>
+        <article class="panel">
+            <div class="panel-header"><div><h2>Resumo de desempenho</h2><p>Situação dos lançamentos</p></div></div>
+            <div class="panel-body"><div class="chart-wrap"><canvas id="situacaoChart"></canvas></div></div>
+        </article>
+    </section>
+
+    <section class="content-grid">
+        <article class="panel">
+            <div class="panel-header">
+                <div><h2>Últimos alunos cadastrados</h2><p>Movimentações recentes</p></div>
+                <a href="{{ route('alunos.index') }}" class="btn btn-ghost btn-sm">Ver todos <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="panel-body">
+                @if($ultimosAlunos->isNotEmpty())
+                    <ul class="recent-list">
+                        @foreach($ultimosAlunos as $aluno)
+                            <li>
+                                @if($aluno->foto)
+                                    <span class="avatar avatar-md"><img src="{{ asset('storage/' . $aluno->foto) }}" alt=""></span>
+                                @else
+                                    <span class="avatar avatar-md">{{ mb_strtoupper(mb_substr($aluno->nome, 0, 1)) }}</span>
+                                @endif
+                                <span class="meta"><strong>{{ $aluno->nome }}</strong><small>{{ $aluno->turma?->nome ?? 'Ainda sem turma' }}</small></span>
+                                <span class="badge {{ $aluno->turma ? 'badge-primary' : 'badge-neutral' }}">{{ $aluno->turma?->turno ?? 'Pendente' }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @else
+                    <x-empty-state icon="fa-user-plus" title="Nenhum aluno cadastrado" description="Os cadastros recentes aparecerão aqui." />
+                @endif
+            </div>
+        </article>
+
+        <article class="panel">
+            <div class="panel-header"><div><h2>Ações rápidas</h2><p>Atalhos para tarefas frequentes</p></div></div>
+            <div class="panel-body">
+                <div class="quick-actions">
+                    <a class="quick-action" href="{{ route('alunos.create') }}"><span><i class="fa-solid fa-user-plus"></i></span><strong>Novo aluno</strong></a>
+                    <a class="quick-action" href="{{ route('turmas.create') }}"><span><i class="fa-solid fa-people-roof"></i></span><strong>Nova turma</strong></a>
+                    <a class="quick-action" href="{{ route('notas.create') }}"><span><i class="fa-solid fa-pen"></i></span><strong>Lançar nota</strong></a>
                 </div>
-            </div>
 
-            <!-- Card 4: Menor Turma -->
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm border-start border-danger border-4 p-3 h-100">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="text-muted fw-semibold small text-uppercase">Menor Turma</span>
-                            <h5 class="fw-bold m-0 mt-1 text-dark">
-                                {{ $turmaMaisVazia ? $turmaMaisVazia->nome : 'Nenhuma' }}
-                            </h5>
-                            <small class="text-muted">
-                                {{ $turmaMaisVazia ? $turmaMaisVazia->alunos_count . ' alunos' : '0 alunos' }}
-                            </small>
-                        </div>
-                        <div class="bg-danger bg-opacity-10 p-3 rounded-circle text-danger fs-3">
-                            <i class="fa-solid fa-arrow-down-short-wide"></i>
-                        </div>
-                    </div>
-                </div>
+                @if($alertasAcademicos->isNotEmpty())
+                    <ul class="risk-list" style="margin-top: 18px">
+                        @foreach($alertasAcademicos->take(3) as $alerta)
+                            <li>
+                                <span class="dialog-icon" style="width:34px;height:34px;margin:0;border-radius:10px;font-size:13px"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                                <span class="meta"><strong>{{ $alerta->aluno?->nome }}</strong><small>{{ $alerta->disciplina?->nome }} · {{ $alerta->faltas }} faltas</small></span>
+                                <span class="list-value">{{ $alerta->media !== null ? number_format($alerta->media, 1, ',', '.') : '—' }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
             </div>
-        </div>
-        <!-- Card: Total Disciplinas -->
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm border-start border-info border-4 p-3 h-100">
-        <div class="d-flex align-items-center justify-content-between">
-            <div>
-                <span class="text-muted fw-semibold small text-uppercase">Total Disciplinas</span>
-                <h2 class="fw-bold m-0 mt-1 text-info">{{ $totalDisciplinas }}</h2>
-            </div>
-            <div class="bg-info bg-opacity-10 p-3 rounded-circle text-info fs-3">
-                <i class="fa-solid fa-book"></i>
-            </div>
-        </div>
-    </div>
-        </div>
-        <!-- Seção Inferior: Gráfico + Tabela Rápida -->
-        <div class="row g-4">
-            <!-- Gráfico com Chart.js -->
-            <div class="col-lg-6">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-white py-3">
-                        <h5 class="m-0 fw-bold text-secondary">
-                            <i class="fa-solid fa-chart-pie me-2 text-primary"></i>Alunos por Turno
-                        </h5>
-                    </div>
-                    <div class="card-body d-flex justify-content-center align-items-center p-4">
-                        <div style="width: 100%; max-width: 320px;">
-                            <canvas id="turnosChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        </article>
+    </section>
+@endsection
 
-            <!-- Tabela dos Últimos Alunos Cadastrados -->
-            <div class="col-lg-6">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                        <h5 class="m-0 fw-bold text-secondary">
-                            <i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>Últimos Cadastros
-                        </h5>
-                        <a href="{{ route('alunos.index') }}" class="btn btn-sm btn-outline-primary">Ver todos</a>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Nome</th>
-                                        <th>Turma</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse($ultimosAlunos as $aluno)
-                                        <tr>
-                                            <td class="fw-semibold">{{ $aluno->nome }}</td>
-                                            <td>
-                                                @if($aluno->turma)
-                                                    <span class="badge bg-info text-dark">{{ $aluno->turma->nome }}</span>
-                                                @else
-                                                    <span class="badge bg-secondary">Sem Turma</span>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="2" class="text-center text-muted py-3">Nenhum aluno cadastrado.</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+@push('scripts')
+<script>
+    const chartColors = {
+        primary: '#3157d5', success: '#168a5b', warning: '#e5a229', danger: '#c73e4e', info: '#2fa2bf', grid: 'rgba(120,135,160,.13)'
+    };
+    const turnosLabels = {!! json_encode($turnosLabels) !!};
+    const turnosValores = {!! json_encode($turnosValores) !!};
 
-    <!-- Script para renderizar o gráfico do Chart.js -->
-    <script>
-        const ctx = document.getElementById('turnosChart').getContext('2d');
-        const turnosChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: {!! json_encode($turnosLabels) !!},
-                datasets: [{
-                    data: {!! json_encode($turnosValores) !!},
-                    backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#0dcaf0'],
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
-                }
-            }
-        });
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    new Chart(document.getElementById('turnosChart'), {
+        type: 'bar',
+        data: {
+            labels: turnosLabels,
+            datasets: [{ label: 'Alunos', data: turnosValores, backgroundColor: ['#3157d5', '#6a82db', '#93a5e7', '#b9c5ee'], borderRadius: 7, maxBarThickness: 46 }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { grid: { display: false }, border: { display: false } }, y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: chartColors.grid }, border: { display: false } } }
+        }
+    });
+    new Chart(document.getElementById('situacaoChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Aprovados', 'Em andamento', 'Reprovados'],
+            datasets: [{ data: [{{ $totalAprovados }}, {{ $totalEmAndamento }}, {{ $totalReprovados }}], backgroundColor: [chartColors.success, chartColors.warning, chartColors.danger], borderWidth: 0, spacing: 3 }]
+        },
+        options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 18, boxWidth: 8 } } } }
+    });
+</script>
+@endpush

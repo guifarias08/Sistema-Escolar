@@ -1,201 +1,94 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Alunos - Sistema Escolar</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
-<body class="bg-light">
+@extends('layouts.app')
 
-    <!-- Navbar Completa -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="{{ route('dashboard.index') }}">
-                <i class="fa-solid fa-graduation-cap me-2"></i>Sistema Escolar
-            </a>
-            <div class="navbar-nav ms-auto gap-2">
-                <a class="nav-link" href="{{ route('dashboard.index') }}">
-                    <i class="fa-solid fa-chart-line me-1"></i> Dashboard
-                </a>
-                <a class="nav-link active fw-bold" href="{{ route('alunos.index') }}">
-                    <i class="fa-solid fa-users me-1"></i> Alunos
-                </a>
-                <a class="nav-link" href="{{ route('turmas.index') }}">
-                    <i class="fa-solid fa-chalkboard me-1"></i> Turmas
-                </a>
-                <a class="nav-link" href="{{ route('disciplinas.index') }}">
-                    <i class="fa-solid fa-book me-1"></i> Disciplinas
-                </a>
-                <a class="nav-link" href="{{ route('notas.index') }}">
-                    <i class="fa-solid fa-clipboard-check me-1"></i> Notas e Frequência
-                </a>
-            </div>
+@section('title', 'Alunos')
+
+@section('content')
+    <x-page-header eyebrow="Gestão acadêmica" title="Alunos" description="Consulte, filtre e gerencie os alunos matriculados.">
+        <a href="{{ route('alunos.create') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i>Novo aluno</a>
+    </x-page-header>
+
+    <section class="panel">
+        <div class="panel-header">
+            <div><h2>Todos os alunos</h2><p>{{ $alunos->total() }} {{ $alunos->total() === 1 ? 'registro encontrado' : 'registros encontrados' }}</p></div>
+            @if(request()->hasAny(['busca', 'turma_id', 'turno']))
+                <a href="{{ route('alunos.index') }}" class="btn btn-ghost btn-sm"><i class="fa-solid fa-filter-circle-xmark"></i>Limpar filtros</a>
+            @endif
         </div>
-    </nav>
 
-    <div class="container mb-5">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h4 class="m-0 font-weight-bold text-primary">
-                    <i class="fa-solid fa-users me-2"></i>Alunos Cadastrados
-                </h4>
-                <a href="{{ route('alunos.create') }}" class="btn btn-primary shadow-sm">
-                    <i class="fa-solid fa-plus me-1"></i> Novo Aluno
-                </a>
+        <form class="filter-bar" action="{{ route('alunos.index') }}" method="GET">
+            <div class="search-field">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input class="form-control" type="search" name="busca" value="{{ $busca }}" placeholder="Buscar por nome, CPF ou e-mail">
             </div>
+            <select class="form-select" name="turma_id" aria-label="Filtrar por turma">
+                <option value="">Todas as turmas</option>
+                @foreach($turmas as $turma)
+                    <option value="{{ $turma->id }}" @selected((string) $turmaId === (string) $turma->id)>{{ $turma->nome }}</option>
+                @endforeach
+            </select>
+            <select class="form-select" name="turno" aria-label="Filtrar por turno">
+                <option value="">Todos os turnos</option>
+                @foreach(['Manhã', 'Tarde', 'Noite', 'Integral'] as $opcao)
+                    <option value="{{ $opcao }}" @selected($turno === $opcao)>{{ $opcao }}</option>
+                @endforeach
+            </select>
+            <button class="btn btn-secondary" type="submit"><i class="fa-solid fa-sliders"></i>Filtrar</button>
+        </form>
 
-            <div class="card-body">
-                <!-- Campo de Busca -->
-                <form action="{{ route('alunos.index') }}" method="GET" class="row g-2 mb-4">
-                    <div class="col-md-5">
-                        <div class="input-group">
-                           <input type="text" name="busca" class="form-control" placeholder="Buscar por Nome ou CPF..." value="{{ $busca ?? '' }}">
-                            <button class="btn btn-outline-primary" type="submit">
-                                <i class="fa-solid fa-magnifying-glass"></i> Buscar
-                            </button>
-                            @if(!empty($busca))
-                                <a href="{{ route('alunos.index') }}" class="btn btn-outline-secondary" title="Limpar Filtro">
-                                    <i class="fa-solid fa-xmark"></i>
-                                </a>
-                            @endif
-                        </div>
-                    </div>
-                </form>
-        <!-- Tabela de Alunos -->
-                    <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
+        @if($alunos->isNotEmpty())
+            <div class="table-wrap">
+                <table class="data-table responsive">
+                    <thead><tr><th>Aluno</th><th>CPF</th><th>Turma</th><th>Disciplinas</th><th style="text-align:right">Ações</th></tr></thead>
+                    <tbody>
+                        @foreach($alunos as $aluno)
+                            @php
+                                $cpfMascarado = preg_replace('/^(\d{3})\.(\d{3})\.(\d{3})-(\d{2})$/', '***.$2.$3-**', $aluno->cpf);
+                            @endphp
                             <tr>
-                                <th style="width: 60px;">Foto</th>
-                                <th>Nome</th>
-                                <th>CPF</th>
-                                <th>Data de Nascimento</th>
-                                <th class="text-center">Ações</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            @forelse($alunos as $aluno)
-                                <tr>
-                                    {{-- FOTO --}}
-                                    <td>
+                                <td>
+                                    <div class="cell-person">
                                         @if($aluno->foto)
-                                            <img
-                                                src="{{ asset('storage/' . $aluno->foto) }}"
-                                                alt="{{ $aluno->nome }}"
-                                                class="rounded-circle"
-                                                style="width: 40px; height: 40px; object-fit: cover;"
-                                            >
+                                            <span class="avatar avatar-md"><img src="{{ asset('storage/' . $aluno->foto) }}" alt=""></span>
                                         @else
-                                            <img
-                                                src="https://ui-avatars.com/api/?name={{ urlencode($aluno->nome) }}&background=0D6EFD&color=fff&size=40"
-                                                alt="{{ $aluno->nome }}"
-                                                class="rounded-circle"
-                                                style="width: 40px; height: 40px;"
-                                            >
+                                            <span class="avatar avatar-md">{{ mb_strtoupper(mb_substr($aluno->nome, 0, 1)) }}</span>
                                         @endif
-                                    </td>
-
-                                    {{-- NOME --}}
-                                    <td class="fw-semibold">
-                                        {{ $aluno->nome }}
-                                    </td>
-
-                                    {{-- CPF --}}
-                                    <td>
-                                        {{ $aluno->cpf }}
-                                    </td>
-
-                                    {{-- DATA DE NASCIMENTO --}}
-                                    <td>
-                                        {{ $aluno->data_nascimento }}
-                                    </td>
-
-                                    {{-- AÇÕES --}}
-                                    <td class="text-center">
-                                        <div class="d-flex justify-content-center gap-2">
-                                            <a
-                                                href="{{ route('alunos.edit', $aluno->id) }}"
-                                                class="btn btn-sm btn-outline-warning"
-                                                title="Editar"
-                                            >
-                                                <i class="fa-solid fa-pen-to-square"></i>
-                                            </a>
-
-                                            <form
-                                                action="{{ route('alunos.destroy', $aluno->id) }}"
-                                                method="POST"
-                                                class="d-inline form-deletar"
-                                            >
-                                                @csrf
-                                                @method('DELETE')
-
-                                                <button
-                                                    type="submit"
-                                                    class="btn btn-sm btn-outline-danger"
-                                                    title="Excluir"
-                                                >
-                                                    <i class="fa-solid fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="text-center text-muted py-4">Nenhum aluno encontrado.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Paginação -->
-                <div class="d-flex justify-content-center mt-4">
-                    {{ $alunos->appends(request()->query())->links('pagination::bootstrap-5') }}
-                </div>
+                                        <span><strong>{{ $aluno->nome }}</strong><small>{{ $aluno->email ?: 'E-mail não informado' }}</small></span>
+                                    </div>
+                                </td>
+                                <td data-label="CPF"><span class="cell-muted">{{ $cpfMascarado }}</span></td>
+                                <td data-label="Turma">
+                                    @if($aluno->turma)
+                                        <span class="badge badge-primary">{{ $aluno->turma->nome }}</span>
+                                        <small class="cell-muted"> · {{ $aluno->turma->turno }}</small>
+                                    @else
+                                        <span class="badge badge-warning">Sem turma</span>
+                                    @endif
+                                </td>
+                                <td data-label="Disciplinas">
+                                    <span class="count-stack"><strong>{{ $aluno->disciplinas->count() }}</strong><small>vinculadas</small></span>
+                                </td>
+                                <td data-label="Ações">
+                                    <div class="table-actions">
+                                        <a href="{{ route('alunos.edit', $aluno) }}" class="btn btn-icon edit" aria-label="Editar {{ $aluno->nome }}" title="Editar"><i class="fa-solid fa-pen"></i></a>
+                                        <form action="{{ route('alunos.destroy', $aluno) }}" method="POST" data-confirm-delete data-delete-label="{{ $aluno->nome }}">
+                                            @csrf @method('DELETE')
+                                            <button class="btn btn-icon delete" type="submit" aria-label="Excluir {{ $aluno->nome }}" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        // Modal animado do SweetAlert2 para Deletar
-        document.querySelectorAll('.form-deletar').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                Swal.fire({
-                    title: 'Tem certeza?',
-                    text: "Esta ação não poderá ser desfeita!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#dc3545',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Sim, excluir!',
-                    cancelButtonText: 'Cancelar',
-                    reverseButtons: true
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        this.submit();
-                    }
-                });
-            });
-        });
-
-        // Toast de confirmação para mensagens de sucesso
-        @if(session('sucesso'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Sucesso!',
-                text: "{{ session('sucesso') }}",
-                timer: 3000,
-                showConfirmButton: false
-            });
+            <div class="pagination-wrap">
+                <span class="pagination-summary">Exibindo {{ $alunos->firstItem() }}–{{ $alunos->lastItem() }} de {{ $alunos->total() }}</span>
+                {{ $alunos->links('pagination::bootstrap-5') }}
+            </div>
+        @else
+            <x-empty-state icon="fa-user-graduate" title="Nenhum aluno encontrado" description="Tente ajustar os filtros ou cadastre o primeiro aluno.">
+                <a href="{{ route('alunos.create') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i>Novo aluno</a>
+            </x-empty-state>
         @endif
-    </script>
-</body>
-</html>
+    </section>
+@endsection
