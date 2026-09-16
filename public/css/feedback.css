@@ -1,0 +1,443 @@
+/* ============================================================
+   LOADING GLOBAL
+============================================================ */
+
+.page-loader {
+    position: fixed;
+    inset: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(248, 250, 252, 0.82);
+
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+
+    opacity: 0;
+    visibility: hidden;
+
+    transition:
+        opacity .22s ease,
+        visibility .22s ease;
+
+    z-index: 999999;
+}
+
+
+[data-theme="dark"] .page-loader {
+    background: rgba(15, 23, 42, 0.82);
+}
+
+
+.page-loader.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+
+.page-loader-card {
+    min-width: 190px;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+
+    padding: 26px 32px;
+
+    background:
+        var(--surface, #ffffff);
+
+    color:
+        var(--text, #111827);
+
+    border:
+        1px solid
+        var(--border, #e5e7eb);
+
+    border-radius: 18px;
+
+    box-shadow:
+        0 20px 60px
+        rgba(15, 23, 42, .15);
+
+    animation:
+        loaderCardIn .25s ease;
+}
+
+
+.page-loader-logo {
+    width: 46px;
+    height: 46px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 14px;
+
+    background:
+        rgba(79, 70, 229, .10);
+
+    color: #4f46e5;
+
+    font-size: 20px;
+
+    margin-bottom: 4px;
+}
+
+
+.page-loader-spinner {
+    width: 32px;
+    height: 32px;
+
+    border-radius: 50%;
+
+    border:
+        3px solid #e5e7eb;
+
+    border-top-color:
+        #4f46e5;
+
+    animation:
+        loaderSpin .65s linear infinite;
+}
+
+
+.page-loader-card strong {
+    font-size: 14px;
+
+    font-weight: 700;
+}
+
+
+.page-loader-card small {
+    font-size: 12px;
+
+    opacity: .65;
+}
+
+
+/* ============================================================
+   ANIMAÇÕES
+============================================================ */
+
+@keyframes loaderSpin {
+
+    to {
+        transform:
+            rotate(360deg);
+    }
+
+}
+
+
+@keyframes loaderCardIn {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(8px)
+            scale(.97);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1);
+    }
+
+}
+
+
+@keyframes pageEnterAnimation {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0);
+    }
+
+}
+
+
+.page-enter {
+    animation:
+        pageEnterAnimation
+        .35s ease both;
+}
+
+
+/* ============================================================
+   ANIMAÇÃO DAS TABELAS
+============================================================ */
+
+@keyframes tableRowEnter {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0);
+    }
+
+}
+
+
+.table-row-enter {
+    opacity: 0;
+
+    animation:
+        tableRowEnter
+        .30s ease forwards;
+}
+
+
+/* ============================================================
+   IZIMODAL - EXCLUSÃO
+============================================================ */
+
+.delete-modal-content {
+    padding:
+        34px 32px 30px;
+
+    text-align: center;
+
+    background:
+        var(--surface, #ffffff);
+
+    color:
+        var(--text, #111827);
+}
+
+
+.delete-modal-icon {
+    width: 66px;
+    height: 66px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    margin:
+        0 auto 18px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(220, 38, 38, .10);
+
+    color:
+        #dc2626;
+
+    font-size: 25px;
+
+    animation:
+        deleteIconIn .35s ease;
+}
+
+
+@keyframes deleteIconIn {
+
+    0% {
+        transform:
+            scale(.6);
+
+        opacity: 0;
+    }
+
+    70% {
+        transform:
+            scale(1.08);
+    }
+
+    100% {
+        transform:
+            scale(1);
+
+        opacity: 1;
+    }
+
+}
+
+
+.delete-modal-content h2 {
+    margin: 0 0 9px;
+
+    font-family:
+        "Manrope",
+        sans-serif;
+
+    font-size: 21px;
+
+    font-weight: 800;
+}
+
+
+.delete-modal-content p {
+    max-width: 370px;
+
+    margin:
+        0 auto 25px;
+
+    line-height: 1.6;
+
+    font-size: 14px;
+
+    opacity: .72;
+}
+
+
+.delete-modal-actions {
+    display: flex;
+
+    justify-content: center;
+
+    gap: 10px;
+}
+
+
+.delete-modal-actions .btn {
+    min-width: 135px;
+
+    justify-content: center;
+}
+
+
+/* ============================================================
+   IZIMODAL DARK MODE
+============================================================ */
+
+[data-theme="dark"]
+.iziModal {
+
+    background:
+        var(--surface, #111827) !important;
+
+}
+
+
+[data-theme="dark"]
+.iziModal-content {
+
+    background:
+        var(--surface, #111827);
+
+}
+
+
+/* ============================================================
+   IZITOAST
+============================================================ */
+
+.iziToast {
+    border-radius:
+        12px !important;
+
+    overflow: hidden;
+}
+
+
+.iziToast > .iziToast-body
+.iziToast-title {
+
+    font-weight:
+        700 !important;
+}
+
+
+/* ============================================================
+   BOTÕES COM LOADING
+============================================================ */
+
+button:disabled {
+    cursor: wait;
+
+    opacity: .78;
+}
+
+
+/* ============================================================
+   ACESSIBILIDADE
+============================================================ */
+
+@media (
+    prefers-reduced-motion:
+    reduce
+) {
+
+    *,
+    *::before,
+    *::after {
+
+        animation-duration:
+            .01ms !important;
+
+        animation-iteration-count:
+            1 !important;
+
+        transition-duration:
+            .01ms !important;
+
+    }
+
+}
+
+
+/* ============================================================
+   RESPONSIVIDADE
+============================================================ */
+
+@media (
+    max-width: 600px
+) {
+
+    .page-loader-card {
+        min-width: 170px;
+
+        padding:
+            22px 25px;
+    }
+
+
+    .delete-modal-content {
+        padding:
+            28px 20px 24px;
+    }
+
+
+    .delete-modal-actions {
+        flex-direction:
+            column-reverse;
+    }
+
+
+    .delete-modal-actions .btn {
+        width: 100%;
+    }
+
+}
