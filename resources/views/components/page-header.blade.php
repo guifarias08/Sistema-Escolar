@@ -1,9 +1,14 @@
-@props(['title', 'eyebrow' => null, 'description' => null])
+@props(['title', 'eyebrow' => null, 'description' => null, 'greetingName' => null])
 
 <div class="page-header">
     <div>
         @if($eyebrow)<div class="eyebrow">{{ $eyebrow }}</div>@endif
-        <h1>{{ $title }}</h1>
+        <h1
+            @if($greetingName)
+                data-dynamic-greeting
+                data-greeting-name="{{ $greetingName }}"
+            @endif
+        >{{ $title }}</h1>
         @if($description)<p>{{ $description }}</p>@endif
     </div>
     @if(trim($slot))

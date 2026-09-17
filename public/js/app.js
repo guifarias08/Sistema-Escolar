@@ -25,17 +25,111 @@ document.addEventListener('DOMContentLoaded', function () {
     const pageLoaderText =
         document.querySelector('#pageLoaderText');
 
+    const dynamicGreeting =
+        document.querySelector('[data-dynamic-greeting]');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | SAUDAÇÃO DINÂMICA POR HORÁRIO
+    |--------------------------------------------------------------------------
+    */
+
+    function getGreetingForHour(hour) {
+
+        if (hour >= 5 && hour < 12) {
+            return 'Bom dia';
+        }
+
+
+        if (hour >= 12 && hour < 18) {
+            return 'Boa tarde';
+        }
+
+
+        if (hour >= 18) {
+            return 'Boa noite';
+        }
+
+
+        return 'Boa madrugada';
+
+    }
+
+
+    function updateDynamicGreeting() {
+
+        if (!dynamicGreeting) {
+            return;
+        }
+
+
+        const name =
+            dynamicGreeting.dataset.greetingName ||
+            'Administrador';
+
+        const greeting =
+            getGreetingForHour(
+                new Date().getHours()
+            );
+
+
+        dynamicGreeting.textContent =
+            `${greeting}, ${name}!`;
+
+    }
+
+
+    function scheduleGreetingUpdate() {
+
+        if (!dynamicGreeting) {
+            return;
+        }
+
+
+        updateDynamicGreeting();
+
+
+        const now =
+            new Date();
+
+        const nextHour =
+            new Date(now);
+
+
+        nextHour.setHours(
+            now.getHours() + 1,
+            0,
+            1,
+            0
+        );
+
+
+        setTimeout(
+            scheduleGreetingUpdate,
+            nextHour.getTime() - now.getTime()
+        );
+
+    }
+
+
+    window.getGreetingForHour =
+        getGreetingForHour;
+
+
+    scheduleGreetingUpdate();
+
 
     /*
     |--------------------------------------------------------------------------
     | LOADER GLOBAL
     |--------------------------------------------------------------------------
     |
-    | 2000ms = 2 segundos
+    | Mantém a transição perceptível sem atrasar a navegação.
     |
     */
 
-    const LOADER_MIN_TIME = 1500; // 1.5 segundos
+    const LOADER_MIN_TIME = 350;
 
     let loaderStartTime = Date.now();
 
@@ -129,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Calcula quanto falta para completar 2 segundos
+        | Calcula quanto falta para completar o tempo mínimo
         |--------------------------------------------------------------------------
         */
 
@@ -157,6 +251,54 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             remaining
         );
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ESTADO DE CARREGAMENTO DOS BOTÕES
+    |--------------------------------------------------------------------------
+    */
+
+    function setButtonLoading(button, content) {
+
+        if (!button) {
+            return;
+        }
+
+
+        if (!button.dataset.loadingOriginal) {
+
+            button.dataset.loadingOriginal =
+                button.innerHTML;
+
+        }
+
+
+        button.disabled = true;
+
+        button.innerHTML = content;
+
+    }
+
+
+    function resetLoadingButtons() {
+
+        document
+            .querySelectorAll(
+                '[data-loading-original]'
+            )
+            .forEach(function (button) {
+
+                button.innerHTML =
+                    button.dataset.loadingOriginal;
+
+                button.disabled = false;
+
+                delete button.dataset.loadingOriginal;
+
+            });
 
     }
 
@@ -217,6 +359,8 @@ document.addEventListener('DOMContentLoaded', function () {
         function () {
 
             hidePageLoader();
+
+            resetLoadingButtons();
 
         }
     );
@@ -296,6 +440,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     */
 
                     if (
+                        event.defaultPrevented ||
+                        event.button !== 0 ||
                         event.ctrlKey ||
                         event.metaKey ||
                         event.shiftKey ||
@@ -987,14 +1133,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
 
-                    this.disabled =
-                        true;
-
-
-                    this.innerHTML = `
+                    setButtonLoading(this, `
                         <i class="fa-solid fa-spinner fa-spin"></i>
                         Excluindo...
-                    `;
+                    `);
 
 
                     /*
@@ -1078,14 +1220,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         if (button) {
 
-                            button.disabled =
-                                true;
-
-
-                            button.innerHTML = `
+                            setButtonLoading(button, `
                                 <i class="fa-solid fa-spinner fa-spin"></i>
                                 Buscando...
-                            `;
+                            `);
 
                         }
 
@@ -1108,14 +1246,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     if (button) {
 
-                        button.disabled =
-                            true;
-
-
-                        button.innerHTML = `
+                        setButtonLoading(button, `
                             <i class="fa-solid fa-spinner fa-spin"></i>
                             Salvando...
-                        `;
+                        `);
 
                     }
 
@@ -1189,7 +1323,7 @@ document.addEventListener('DOMContentLoaded', function () {
     */
 
     console.log(
-        '✅ Loader configurado para 2 segundos'
+        '✅ Loader global configurado'
     );
 
     console.log(

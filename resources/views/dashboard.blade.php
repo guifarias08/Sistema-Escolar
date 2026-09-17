@@ -10,6 +10,7 @@
     <x-page-header
         eyebrow="Visão geral"
         title="Bom dia, Administrador!"
+        greeting-name="Administrador"
         description="Acompanhe os principais indicadores e as pendências acadêmicas da escola."
     >
         <a href="{{ route('alunos.create') }}" class="btn btn-secondary"><i class="fa-solid fa-user-plus"></i>Novo aluno</a>
