@@ -1,101 +1,58 @@
-console.log('✅ EduGestão JavaScript carregado');
-
 document.addEventListener('DOMContentLoaded', function () {
-
-    /*
-    |--------------------------------------------------------------------------
-    | ELEMENTOS GLOBAIS
-    |--------------------------------------------------------------------------
-    */
+    'use strict';
 
     const root = document.documentElement;
+    const sidebar = document.querySelector('#sidebar');
+    const backdrop = document.querySelector('[data-sidebar-close]');
+    const searchInput = document.querySelector('[data-global-search]');
+    const pageLoader = document.querySelector('#pageLoader');
+    const pageLoaderText = document.querySelector('#pageLoaderText');
+    const dynamicGreeting = document.querySelector('[data-dynamic-greeting]');
+    const themeButton = document.querySelector('[data-theme-toggle]');
 
-    const sidebar =
-        document.querySelector('#sidebar');
+    const LOADER_MIN_TIME = 350;
+    const LOADER_TRANSITION_TIME = 240;
 
-    const backdrop =
-        document.querySelector('[data-sidebar-close]');
-
-    const searchInput =
-        document.querySelector('[data-global-search]');
-
-    const pageLoader =
-        document.querySelector('#pageLoader');
-
-    const pageLoaderText =
-        document.querySelector('#pageLoaderText');
-
-    const dynamicGreeting =
-        document.querySelector('[data-dynamic-greeting]');
-
+    let loaderStartTime = Date.now();
+    let loaderTimeout = null;
+    let flashTimeout = null;
+    let flashDisplayed = false;
+    let pendingDeleteForm = null;
 
     /*
     |--------------------------------------------------------------------------
-    | SAUDAÇÃO DINÂMICA POR HORÁRIO
+    | Saudação
     |--------------------------------------------------------------------------
     */
 
     function getGreetingForHour(hour) {
-
         if (hour >= 5 && hour < 12) {
             return 'Bom dia';
         }
-
 
         if (hour >= 12 && hour < 18) {
             return 'Boa tarde';
         }
 
-
         if (hour >= 18) {
             return 'Boa noite';
         }
 
-
         return 'Boa madrugada';
-
     }
-
-
-    function updateDynamicGreeting() {
-
-        if (!dynamicGreeting) {
-            return;
-        }
-
-
-        const name =
-            dynamicGreeting.dataset.greetingName ||
-            'Administrador';
-
-        const greeting =
-            getGreetingForHour(
-                new Date().getHours()
-            );
-
-
-        dynamicGreeting.textContent =
-            `${greeting}, ${name}!`;
-
-    }
-
 
     function scheduleGreetingUpdate() {
-
         if (!dynamicGreeting) {
             return;
         }
 
+        const name = dynamicGreeting.dataset.greetingName || 'Administrador';
+        const now = new Date();
+        const greeting = getGreetingForHour(now.getHours());
 
-        updateDynamicGreeting();
+        dynamicGreeting.textContent = `${greeting}, ${name}!`;
 
-
-        const now =
-            new Date();
-
-        const nextHour =
-            new Date(now);
-
+        const nextHour = new Date(now);
 
         nextHour.setHours(
             now.getHours() + 1,
@@ -104,1234 +61,574 @@ document.addEventListener('DOMContentLoaded', function () {
             0
         );
 
-
         setTimeout(
             scheduleGreetingUpdate,
             nextHour.getTime() - now.getTime()
         );
-
     }
 
-
-    window.getGreetingForHour =
-        getGreetingForHour;
-
+    window.getGreetingForHour = getGreetingForHour;
 
     scheduleGreetingUpdate();
 
-
     /*
     |--------------------------------------------------------------------------
-    | LOADER GLOBAL
+    | iziToast
     |--------------------------------------------------------------------------
-    |
-    | Mantém a transição perceptível sem atrasar a navegação.
-    |
     */
 
-    const LOADER_MIN_TIME = 350;
+    function showFlashMessages() {
+        if (flashDisplayed) {
+            return;
+        }
 
-    let loaderStartTime = Date.now();
+        if (pageLoader?.classList.contains('active')) {
+            return;
+        }
 
-    let loaderTimeout = null;
+        flashDisplayed = true;
 
+        if (typeof window.iziToast === 'undefined') {
+            return;
+        }
+
+        const flash = window.appFlash || {};
+
+        if (flash.success) {
+            window.iziToast.success({
+                title: 'Tudo certo!',
+                message: flash.success,
+                position: 'topRight',
+                timeout: 4000,
+                progressBar: true,
+                close: true,
+                pauseOnHover: true,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp'
+            });
+        }
+
+        if (flash.error) {
+            window.iziToast.error({
+                title: 'Não foi possível concluir',
+                message: flash.error,
+                position: 'topRight',
+                timeout: 5000,
+                progressBar: true,
+                close: true,
+                pauseOnHover: true,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp'
+            });
+        }
+
+        if (flash.warning) {
+            window.iziToast.warning({
+                title: 'Atenção',
+                message: flash.warning,
+                position: 'topRight',
+                timeout: 5000,
+                progressBar: true,
+                close: true
+            });
+        }
+
+        if (flash.info) {
+            window.iziToast.info({
+                title: 'Informação',
+                message: flash.info,
+                position: 'topRight',
+                timeout: 5000,
+                progressBar: true,
+                close: true
+            });
+        }
+    }
 
     /*
     |--------------------------------------------------------------------------
-    | MOSTRAR LOADER
+    | Loader
     |--------------------------------------------------------------------------
     */
 
     function showPageLoader(message = 'Carregando...') {
-
         if (!pageLoader) {
             return;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Cancela fechamento anterior
-        |--------------------------------------------------------------------------
-        */
+        clearTimeout(loaderTimeout);
+        clearTimeout(flashTimeout);
 
-        if (loaderTimeout) {
+        loaderTimeout = null;
+        flashTimeout = null;
+        loaderStartTime = Date.now();
 
-            clearTimeout(loaderTimeout);
+        if (pageLoaderText) {
+            pageLoaderText.textContent = message;
+        }
+
+        pageLoader.classList.add('active');
+        pageLoader.setAttribute('aria-hidden', 'false');
+    }
+
+    function hidePageLoader() {
+        clearTimeout(loaderTimeout);
+        clearTimeout(flashTimeout);
+
+        if (!pageLoader) {
+            showFlashMessages();
+            return;
+        }
+
+        const elapsed = Date.now() - loaderStartTime;
+
+        const remaining = Math.max(
+            0,
+            LOADER_MIN_TIME - elapsed
+        );
+
+        loaderTimeout = setTimeout(() => {
+            pageLoader.classList.remove('active');
+            pageLoader.setAttribute('aria-hidden', 'true');
 
             loaderTimeout = null;
 
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Marca quando começou
-        |--------------------------------------------------------------------------
-        */
-
-        loaderStartTime = Date.now();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Altera mensagem
-        |--------------------------------------------------------------------------
-        */
-
-        if (pageLoaderText) {
-
-            pageLoaderText.textContent =
-                message;
-
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Exibe loader
-        |--------------------------------------------------------------------------
-        */
-
-        pageLoader.classList.add(
-            'active'
-        );
-
-        pageLoader.setAttribute(
-            'aria-hidden',
-            'false'
-        );
-
+            flashTimeout = setTimeout(() => {
+                flashTimeout = null;
+                showFlashMessages();
+            }, LOADER_TRANSITION_TIME);
+        }, remaining);
     }
 
+    window.showPageLoader = showPageLoader;
+    window.hidePageLoader = hidePageLoader;
 
     /*
     |--------------------------------------------------------------------------
-    | ESCONDER LOADER
-    |--------------------------------------------------------------------------
-    */
-
-    function hidePageLoader() {
-
-        if (!pageLoader) {
-            return;
-        }
-
-
-        const elapsed =
-            Date.now() - loaderStartTime;
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Calcula quanto falta para completar o tempo mínimo
-        |--------------------------------------------------------------------------
-        */
-
-        const remaining =
-            Math.max(
-                0,
-                LOADER_MIN_TIME - elapsed
-            );
-
-
-        loaderTimeout = setTimeout(
-            function () {
-
-                pageLoader.classList.remove(
-                    'active'
-                );
-
-                pageLoader.setAttribute(
-                    'aria-hidden',
-                    'true'
-                );
-
-                loaderTimeout = null;
-
-            },
-            remaining
-        );
-
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | ESTADO DE CARREGAMENTO DOS BOTÕES
+    | Botões em carregamento
     |--------------------------------------------------------------------------
     */
 
     function setButtonLoading(button, content) {
-
         if (!button) {
             return;
         }
 
-
         if (!button.dataset.loadingOriginal) {
-
-            button.dataset.loadingOriginal =
-                button.innerHTML;
-
+            button.dataset.loadingOriginal = button.innerHTML;
         }
 
-
         button.disabled = true;
-
         button.innerHTML = content;
-
     }
 
-
     function resetLoadingButtons() {
-
         document
-            .querySelectorAll(
-                '[data-loading-original]'
-            )
-            .forEach(function (button) {
-
-                button.innerHTML =
-                    button.dataset.loadingOriginal;
-
+            .querySelectorAll('[data-loading-original]')
+            .forEach(button => {
+                button.innerHTML = button.dataset.loadingOriginal;
                 button.disabled = false;
 
                 delete button.dataset.loadingOriginal;
-
             });
-
     }
 
+    function resetSubmittingForms() {
+        document
+            .querySelectorAll('form[data-submitting]')
+            .forEach(form => {
+                delete form.dataset.submitting;
+            });
+    }
 
-    /*
-    |--------------------------------------------------------------------------
-    | FUNÇÕES GLOBAIS
-    |--------------------------------------------------------------------------
-    |
-    | Para testar pelo console:
-    |
-    | showPageLoader('Testando...');
-    | hidePageLoader();
-    |
-    */
-
-    window.showPageLoader =
-        showPageLoader;
-
-    window.hidePageLoader =
-        hidePageLoader;
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | PRIMEIRO CARREGAMENTO
-    |--------------------------------------------------------------------------
-    */
-
-    loaderStartTime =
-        Date.now();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | PÁGINA CARREGADA
-    |--------------------------------------------------------------------------
-    */
-
-    window.addEventListener(
-        'load',
-        function () {
-
-            hidePageLoader();
-
-        }
-    );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | VOLTAR / AVANÇAR DO NAVEGADOR
-    |--------------------------------------------------------------------------
-    */
-
-    window.addEventListener(
-        'pageshow',
-        function () {
-
-            hidePageLoader();
-
-            resetLoadingButtons();
-
-        }
-    );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | LINKS INTERNOS
-    |--------------------------------------------------------------------------
-    */
-
-    document
-        .querySelectorAll('a[href]')
-        .forEach(function (link) {
-
-            link.addEventListener(
-                'click',
-                function (event) {
-
-                    const href =
-                        this.getAttribute('href');
-
-
-                    if (!href) {
-                        return;
-                    }
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Ignorar links especiais
-                    |--------------------------------------------------------------------------
-                    */
-
-                    if (
-                        href.startsWith('#') ||
-                        href.startsWith('javascript:') ||
-                        href.startsWith('mailto:') ||
-                        href.startsWith('tel:')
-                    ) {
-                        return;
-                    }
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Links que abrem nova aba
-                    |--------------------------------------------------------------------------
-                    */
-
-                    if (
-                        this.target === '_blank'
-                    ) {
-                        return;
-                    }
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Downloads
-                    |--------------------------------------------------------------------------
-                    */
-
-                    if (
-                        this.hasAttribute(
-                            'download'
-                        )
-                    ) {
-                        return;
-                    }
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | CTRL + clique etc.
-                    |--------------------------------------------------------------------------
-                    */
-
-                    if (
-                        event.defaultPrevented ||
-                        event.button !== 0 ||
-                        event.ctrlKey ||
-                        event.metaKey ||
-                        event.shiftKey ||
-                        event.altKey
-                    ) {
-                        return;
-                    }
-
-
-                    try {
-
-                        const url =
-                            new URL(
-                                this.href,
-                                window.location.href
-                            );
-
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Não mostrar em link externo
-                        |--------------------------------------------------------------------------
-                        */
-
-                        if (
-                            url.origin !==
-                            window.location.origin
-                        ) {
-                            return;
-                        }
-
-
-                        showPageLoader(
-                            'Carregando página...'
-                        );
-
-                    } catch (error) {
-
-                        console.error(
-                            'Erro ao verificar link:',
-                            error
-                        );
-
-                    }
-
-                }
-            );
-
+    if (document.readyState === 'complete') {
+        hidePageLoader();
+    } else {
+        window.addEventListener('load', hidePageLoader, {
+            once: true
         });
+    }
 
+    window.addEventListener('pageshow', () => {
+        hidePageLoader();
+        resetLoadingButtons();
+        resetSubmittingForms();
+    });
 
     /*
     |--------------------------------------------------------------------------
-    | SIDEBAR MOBILE
+    | Links internos
+    |--------------------------------------------------------------------------
+    */
+
+    document.querySelectorAll('a[href]').forEach(link => {
+        link.addEventListener('click', function (event) {
+            const href = this.getAttribute('href');
+
+            if (!href) {
+                return;
+            }
+
+            if (
+                href.startsWith('#') ||
+                href.startsWith('javascript:') ||
+                href.startsWith('mailto:') ||
+                href.startsWith('tel:')
+            ) {
+                return;
+            }
+
+            if (
+                this.target === '_blank' ||
+                this.hasAttribute('download')
+            ) {
+                return;
+            }
+
+            if (
+                event.defaultPrevented ||
+                event.button !== 0 ||
+                event.ctrlKey ||
+                event.metaKey ||
+                event.shiftKey ||
+                event.altKey
+            ) {
+                return;
+            }
+
+            try {
+                const url = new URL(
+                    this.href,
+                    window.location.href
+                );
+
+                if (url.origin !== window.location.origin) {
+                    return;
+                }
+
+                showPageLoader('Carregando página...');
+            } catch (error) {
+                console.error(
+                    'Erro ao verificar link:',
+                    error
+                );
+            }
+        });
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Sidebar
     |--------------------------------------------------------------------------
     */
 
     function closeSidebar() {
-
-        sidebar?.classList.remove(
-            'open'
-        );
-
-        backdrop?.classList.remove(
-            'show'
-        );
-
+        sidebar?.classList.remove('open');
+        backdrop?.classList.remove('show');
     }
 
-
     document
-        .querySelector(
-            '[data-sidebar-toggle]'
-        )
-        ?.addEventListener(
-            'click',
-            function () {
+        .querySelector('[data-sidebar-toggle]')
+        ?.addEventListener('click', () => {
+            sidebar?.classList.toggle('open');
+            backdrop?.classList.toggle('show');
+        });
 
-                sidebar?.classList.toggle(
-                    'open'
-                );
-
-                backdrop?.classList.toggle(
-                    'show'
-                );
-
-            }
-        );
-
-
-    backdrop?.addEventListener(
-        'click',
-        closeSidebar
-    );
-
+    backdrop?.addEventListener('click', closeSidebar);
 
     /*
     |--------------------------------------------------------------------------
-    | TEMA CLARO / ESCURO
+    | Tema
     |--------------------------------------------------------------------------
     */
 
-    const savedTheme =
-        localStorage.getItem(
-            'school-theme'
-        );
+    try {
+        const savedTheme = localStorage.getItem('school-theme');
 
-
-    if (savedTheme) {
-
-        root.dataset.theme =
-            savedTheme;
-
+        if (savedTheme === 'dark' || savedTheme === 'light') {
+            root.dataset.theme = savedTheme;
+        }
+    } catch (error) {
+        // A página continua funcionando sem acesso ao localStorage.
     }
 
-
-    const themeButton =
-        document.querySelector(
-            '[data-theme-toggle]'
-        );
-
-
     function syncThemeIcon() {
-
-        const icon =
-            themeButton
-                ?.querySelector('i');
-
+        const icon = themeButton?.querySelector('i');
 
         if (!icon) {
             return;
         }
 
-
-        if (
-            root.dataset.theme ===
-            'dark'
-        ) {
-
-            icon.className =
-                'fa-regular fa-sun';
-
-        } else {
-
-            icon.className =
-                'fa-regular fa-moon';
-
-        }
-
+        icon.className = root.dataset.theme === 'dark'
+            ? 'fa-regular fa-sun'
+            : 'fa-regular fa-moon';
     }
-
 
     syncThemeIcon();
 
+    themeButton?.addEventListener('click', () => {
+        const newTheme = root.dataset.theme === 'dark'
+            ? 'light'
+            : 'dark';
 
-    themeButton?.addEventListener(
-        'click',
-        function () {
+        root.dataset.theme = newTheme;
 
-            const newTheme =
-                root.dataset.theme === 'dark'
-                    ? 'light'
-                    : 'dark';
-
-
-            root.dataset.theme =
-                newTheme;
-
-
-            localStorage.setItem(
-                'school-theme',
-                newTheme
-            );
-
-
-            syncThemeIcon();
-
+        try {
+            localStorage.setItem('school-theme', newTheme);
+        } catch (error) {
+            // O tema ainda é aplicado à página atual.
         }
-    );
 
+        syncThemeIcon();
+    });
 
     /*
     |--------------------------------------------------------------------------
-    | ATALHOS DO TECLADO
+    | Atalhos
     |--------------------------------------------------------------------------
     */
 
-    document.addEventListener(
-        'keydown',
-        function (event) {
-
-            /*
-            |--------------------------------------------------------------------------
-            | CTRL + K
-            |--------------------------------------------------------------------------
-            */
-
-            if (
-                (event.ctrlKey ||
-                    event.metaKey) &&
-                event.key.toLowerCase() === 'k'
-            ) {
-
-                event.preventDefault();
-
-                searchInput?.focus();
-
-            }
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | ESC
-            |--------------------------------------------------------------------------
-            */
-
-            if (
-                event.key === 'Escape'
-            ) {
-
-                closeSidebar();
-
-            }
-
+    document.addEventListener('keydown', event => {
+        if (
+            (event.ctrlKey || event.metaKey) &&
+            event.key.toLowerCase() === 'k'
+        ) {
+            event.preventDefault();
+            searchInput?.focus();
         }
-    );
 
+        if (event.key === 'Escape') {
+            closeSidebar();
+        }
+    });
 
     /*
     |--------------------------------------------------------------------------
-    | BUSCA GLOBAL
+    | Busca
     |--------------------------------------------------------------------------
     */
 
-    searchInput?.addEventListener(
-        'keydown',
-        function (event) {
-
-            if (
-                event.key !== 'Enter'
-            ) {
-                return;
-            }
-
-
-            const value =
-                searchInput.value.trim();
-
-
-            if (!value) {
-                return;
-            }
-
-
-            showPageLoader(
-                'Buscando aluno...'
-            );
-
-
-            window.location.href =
-                `/alunos?busca=${encodeURIComponent(value)}`;
-
+    searchInput?.addEventListener('keydown', event => {
+        if (event.key !== 'Enter') {
+            return;
         }
-    );
 
+        const value = searchInput.value.trim();
+
+        if (!value) {
+            return;
+        }
+
+        showPageLoader('Buscando aluno...');
+
+        window.location.href =
+            `/alunos?busca=${encodeURIComponent(value)}`;
+    });
 
     /*
     |--------------------------------------------------------------------------
-    | PREVIEW DA FOTO DO ALUNO
+    | Preview da foto
     |--------------------------------------------------------------------------
     */
 
     document
-        .querySelectorAll(
-            '[data-image-input]'
-        )
-        .forEach(function (input) {
+        .querySelectorAll('[data-image-input]')
+        .forEach(input => {
+            input.addEventListener('change', function () {
+                const file = this.files?.[0];
+                const selector = this.dataset.imageInput;
 
-            input.addEventListener(
-                'change',
-                function () {
-
-                    const file =
-                        this.files?.[0];
-
-
-                    if (!file) {
-                        return;
-                    }
-
-
-                    const selector =
-                        this.dataset.imageInput;
-
-
-                    if (!selector) {
-                        return;
-                    }
-
-
-                    const target =
-                        document.querySelector(
-                            selector
-                        );
-
-
-                    if (!target) {
-                        return;
-                    }
-
-
-                    const image =
-                        document.createElement(
-                            'img'
-                        );
-
-
-                    image.src =
-                        URL.createObjectURL(
-                            file
-                        );
-
-
-                    image.alt =
-                        'Pré-visualização da foto';
-
-
-                    image.onload =
-                        function () {
-
-                            URL.revokeObjectURL(
-                                image.src
-                            );
-
-                        };
-
-
-                    target.replaceChildren(
-                        image
-                    );
-
+                if (!file || !selector) {
+                    return;
                 }
-            );
 
+                const target = document.querySelector(selector);
+
+                if (!target) {
+                    return;
+                }
+
+                const image = document.createElement('img');
+                const objectUrl = URL.createObjectURL(file);
+
+                image.alt = 'Pré-visualização da foto';
+
+                image.onload = () => {
+                    URL.revokeObjectURL(objectUrl);
+                };
+
+                image.onerror = () => {
+                    URL.revokeObjectURL(objectUrl);
+                };
+
+                image.src = objectUrl;
+
+                target.replaceChildren(image);
+            });
         });
 
-
     /*
     |--------------------------------------------------------------------------
-    | IZITOAST
+    | Modal de exclusão
     |--------------------------------------------------------------------------
     */
 
-    if (
-        typeof iziToast !==
-        'undefined'
-    ) {
-
-        const flash =
-            window.appFlash || {};
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | SUCESSO
-        |--------------------------------------------------------------------------
-        */
-
-        if (flash.success) {
-
-            iziToast.success({
-
-                title:
-                    'Tudo certo!',
-
-                message:
-                    flash.success,
-
-                position:
-                    'topRight',
-
-                timeout:
-                    4000,
-
-                progressBar:
-                    true,
-
-                close:
-                    true,
-
-                pauseOnHover:
-                    true,
-
-                transitionIn:
-                    'fadeInDown',
-
-                transitionOut:
-                    'fadeOutUp'
-
-            });
-
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | ERRO
-        |--------------------------------------------------------------------------
-        */
-
-        if (flash.error) {
-
-            iziToast.error({
-
-                title:
-                    'Não foi possível concluir',
-
-                message:
-                    flash.error,
-
-                position:
-                    'topRight',
-
-                timeout:
-                    5000,
-
-                progressBar:
-                    true,
-
-                close:
-                    true,
-
-                pauseOnHover:
-                    true,
-
-                transitionIn:
-                    'fadeInDown',
-
-                transitionOut:
-                    'fadeOutUp'
-
-            });
-
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | AVISO
-        |--------------------------------------------------------------------------
-        */
-
-        if (flash.warning) {
-
-            iziToast.warning({
-
-                title:
-                    'Atenção',
-
-                message:
-                    flash.warning,
-
-                position:
-                    'topRight',
-
-                timeout:
-                    5000,
-
-                progressBar:
-                    true,
-
-                close:
-                    true
-
-            });
-
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | INFORMAÇÃO
-        |--------------------------------------------------------------------------
-        */
-
-        if (flash.info) {
-
-            iziToast.info({
-
-                title:
-                    'Informação',
-
-                message:
-                    flash.info,
-
-                position:
-                    'topRight',
-
-                timeout:
-                    5000,
-
-                progressBar:
-                    true,
-
-                close:
-                    true
-
-            });
-
-        }
-
-    } else {
-
-        console.warn(
-            '⚠️ iziToast não foi carregado.'
-        );
-
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | IZIMODAL DE EXCLUSÃO
-    |--------------------------------------------------------------------------
-    */
-
-    let pendingDeleteForm =
-        null;
-
-
-    if (
+    const hasDeleteModal =
         window.jQuery &&
-        typeof jQuery.fn.iziModal !==
-            'undefined'
-    ) {
+        typeof window.jQuery.fn.iziModal === 'function' &&
+        document.getElementById('modalExcluir');
 
-        const $ =
-            window.jQuery;
+    if (hasDeleteModal) {
+        const $ = window.jQuery;
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | CONFIGURAÇÃO DO MODAL
-        |--------------------------------------------------------------------------
-        */
-
-        $('#modalExcluir')
-            .iziModal({
-
-                width:
-                    470,
-
-                radius:
-                    16,
-
-                padding:
-                    0,
-
-                zindex:
-                    999999,
-
-                overlayColor:
-                    'rgba(15, 23, 42, .60)',
-
-                transitionIn:
-                    'fadeInDown',
-
-                transitionOut:
-                    'fadeOutDown',
-
-                closeOnEscape:
-                    true,
-
-                closeButton:
-                    true,
-
-                overlayClose:
-                    false
-
-            });
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | FORMULÁRIOS DE EXCLUSÃO
-        |--------------------------------------------------------------------------
-        */
+        $('#modalExcluir').iziModal({
+            width: 470,
+            radius: 16,
+            padding: 0,
+            zindex: 999999,
+            overlayColor: 'rgba(15, 23, 42, .60)',
+            transitionIn: 'fadeInDown',
+            transitionOut: 'fadeOutDown',
+            closeOnEscape: true,
+            closeButton: true,
+            overlayClose: false
+        });
 
         document
-            .querySelectorAll(
-                '[data-confirm-delete]'
-            )
-            .forEach(function (form) {
+            .querySelectorAll('[data-confirm-delete]')
+            .forEach(form => {
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault();
 
-                form.addEventListener(
-                    'submit',
-                    function (event) {
+                    pendingDeleteForm = this;
 
-                        event.preventDefault();
+                    const label = this.dataset.deleteLabel;
 
-
-                        pendingDeleteForm =
-                            this;
-
-
-                        const label =
-                            this.dataset.deleteLabel;
-
-
-                        const message =
-                            document.querySelector(
-                                '#modalDeleteMessage'
-                            );
-
-
-                        if (message) {
-
-                            if (label) {
-
-                                message.textContent =
-                                    `Você realmente deseja excluir ${label}? Esta ação não poderá ser desfeita.`;
-
-                            } else {
-
-                                message.textContent =
-                                    'Você realmente deseja excluir este registro? Esta ação não poderá ser desfeita.';
-
-                            }
-
-                        }
-
-
-                        $('#modalExcluir')
-                            .iziModal(
-                                'open'
-                            );
-
-                    }
-                );
-
-            });
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | CANCELAR EXCLUSÃO
-        |--------------------------------------------------------------------------
-        */
-
-        document
-            .querySelector(
-                '#cancelDelete'
-            )
-            ?.addEventListener(
-                'click',
-                function () {
-
-                    pendingDeleteForm =
-                        null;
-
-
-                    $('#modalExcluir')
-                        .iziModal(
-                            'close'
-                        );
-
-                }
-            );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | CONFIRMAR EXCLUSÃO
-        |--------------------------------------------------------------------------
-        */
-
-        document
-            .querySelector(
-                '#confirmDelete'
-            )
-            ?.addEventListener(
-                'click',
-                function () {
-
-                    if (
-                        !pendingDeleteForm
-                    ) {
-                        return;
-                    }
-
-
-                    setButtonLoading(this, `
-                        <i class="fa-solid fa-spinner fa-spin"></i>
-                        Excluindo...
-                    `);
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | LOADING
-                    |--------------------------------------------------------------------------
-                    */
-
-                    showPageLoader(
-                        'Excluindo registro...'
+                    const message = document.querySelector(
+                        '#modalDeleteMessage'
                     );
 
+                    if (message) {
+                        message.textContent = label
+                            ? `Você realmente deseja excluir ${label}? Esta ação não poderá ser desfeita.`
+                            : 'Você realmente deseja excluir este registro? Esta ação não poderá ser desfeita.';
+                    }
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | ENVIA O FORM
-                    |--------------------------------------------------------------------------
-                    */
+                    $('#modalExcluir').iziModal('open');
+                });
+            });
 
-                    pendingDeleteForm
-                        .submit();
+        document
+            .querySelector('#cancelDelete')
+            ?.addEventListener('click', () => {
+                pendingDeleteForm = null;
 
+                $('#modalExcluir').iziModal('close');
+            });
+
+        document
+            .querySelector('#confirmDelete')
+            ?.addEventListener('click', function () {
+                if (!pendingDeleteForm) {
+                    return;
                 }
-            );
 
-    } else {
+                setButtonLoading(
+                    this,
+                    '<i class="fa-solid fa-spinner fa-spin"></i> Excluindo...'
+                );
 
-        console.warn(
-            '⚠️ iziModal não foi carregado.'
-        );
+                showPageLoader('Excluindo registro...');
 
+                HTMLFormElement.prototype.submit.call(
+                    pendingDeleteForm
+                );
+            });
     }
-
 
     /*
     |--------------------------------------------------------------------------
-    | LOADER NOS FORMULÁRIOS
+    | Carregamento dos formulários
     |--------------------------------------------------------------------------
     */
 
-    document
-        .querySelectorAll('form')
-        .forEach(function (form) {
+    document.querySelectorAll('form').forEach(form => {
+        if (form.hasAttribute('data-confirm-delete')) {
+            return;
+        }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Formulário de exclusão usa o iziModal
-            |--------------------------------------------------------------------------
-            */
-
-            if (
-                form.hasAttribute(
-                    'data-confirm-delete'
-                )
-            ) {
+        form.addEventListener('submit', function (event) {
+            if (event.defaultPrevented) {
                 return;
             }
 
+            if (this.dataset.submitting === 'true') {
+                event.preventDefault();
+                return;
+            }
 
-            form.addEventListener(
-                'submit',
-                function () {
+            this.dataset.submitting = 'true';
 
-                    const button =
-                        this.querySelector(
-                            'button[type="submit"]'
-                        );
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | FILTROS
-                    |--------------------------------------------------------------------------
-                    */
-
-                    if (
-                        this.classList.contains(
-                            'filter-bar'
-                        )
-                    ) {
-
-                        if (button) {
-
-                            setButtonLoading(button, `
-                                <i class="fa-solid fa-spinner fa-spin"></i>
-                                Buscando...
-                            `);
-
-                        }
-
-
-                        showPageLoader(
-                            'Aplicando filtros...'
-                        );
-
-
-                        return;
-
-                    }
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | CADASTRO / EDIÇÃO
-                    |--------------------------------------------------------------------------
-                    */
-
-                    if (button) {
-
-                        setButtonLoading(button, `
-                            <i class="fa-solid fa-spinner fa-spin"></i>
-                            Salvando...
-                        `);
-
-                    }
-
-
-                    showPageLoader(
-                        'Salvando informações...'
-                    );
-
-                }
+            const button = this.querySelector(
+                'button[type="submit"]'
             );
 
+            // Login e logout definem suas próprias mensagens.
+            if (this.dataset.loadingMessage) {
+                if (button) {
+                    if (!button.dataset.loadingOriginal) {
+                        button.dataset.loadingOriginal = button.innerHTML;
+                    }
+
+                    button.disabled = true;
+
+                    button.textContent =
+                        this.dataset.loadingLabel || 'Aguarde...';
+                }
+
+                showPageLoader(this.dataset.loadingMessage);
+
+                return;
+            }
+
+            // Filtros.
+            if (this.classList.contains('filter-bar')) {
+                setButtonLoading(
+                    button,
+                    '<i class="fa-solid fa-spinner fa-spin"></i> Buscando...'
+                );
+
+                showPageLoader('Aplicando filtros...');
+
+                return;
+            }
+
+            // Cadastros e edições.
+            setButtonLoading(
+                button,
+                '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...'
+            );
+
+            showPageLoader('Salvando informações...');
+        });
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Animações
+    |--------------------------------------------------------------------------
+    */
+
+    document
+        .querySelectorAll('.data-table tbody tr')
+        .forEach((row, index) => {
+            row.style.animationDelay =
+                `${Math.min(index * 45, 450)}ms`;
+
+            row.classList.add('table-row-enter');
         });
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | ANIMAÇÃO DAS LINHAS DAS TABELAS
-    |--------------------------------------------------------------------------
-    */
-
-    document
-        .querySelectorAll(
-            '.data-table tbody tr'
-        )
-        .forEach(
-            function (
-                row,
-                index
-            ) {
-
-                row.style.animationDelay =
-                    `${Math.min(
-                        index * 45,
-                        450
-                    )}ms`;
-
-
-                row.classList.add(
-                    'table-row-enter'
-                );
-
-            }
-        );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | ANIMAÇÃO DOS PAINÉIS
-    |--------------------------------------------------------------------------
-    */
-
-    document
-        .querySelectorAll(
-            '.panel'
-        )
-        .forEach(
-            function (panel) {
-
-                panel.classList.add(
-                    'panel-animated'
-                );
-
-            }
-        );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | DEBUG
-    |--------------------------------------------------------------------------
-    */
-
-    console.log(
-        '✅ Loader global configurado'
-    );
-
-    console.log(
-        '✅ iziToast configurado'
-    );
-
-    console.log(
-        '✅ iziModal configurado'
-    );
-
+    document.querySelectorAll('.panel').forEach(panel => {
+        panel.classList.add('panel-animated');
+    });
 });

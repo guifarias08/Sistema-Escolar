@@ -1,0 +1,262 @@
+/* Estrutura */
+
+.login-page {
+    min-height: 100vh;
+}
+
+.login-shell {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+}
+
+/* Apresentação */
+
+.login-intro {
+    position: relative;
+    display: flex;
+    overflow: hidden;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 48px clamp(28px, 5vw, 80px);
+    color: #ffffff;
+    background:
+        radial-gradient(
+            ellipse at 100% 90%,
+            #3157d566,
+            transparent 65%
+        ),
+        #15213a;
+}
+
+.login-intro::after {
+    position: absolute;
+    right: -240px;
+    bottom: -190px;
+    width: 400px;
+    height: 400px;
+    border: 65px solid #ffffff05;
+    border-radius: 50%;
+    content: "";
+    pointer-events: none;
+}
+
+.login-intro .brand {
+    padding: 0;
+}
+
+.intro-content {
+    padding: 80px 0;
+}
+
+.login-kicker {
+    color: #a9bdff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+}
+
+.intro-content h1 {
+    margin: 24px 0;
+    font-size: clamp(36px, 4.2vw, 64px);
+    line-height: 1.13;
+    letter-spacing: -0.045em;
+}
+
+.intro-content h1 span {
+    color: #a5bbff;
+}
+
+.intro-content p {
+    max-width: 380px;
+    color: #b7c4dc;
+    font-size: 16px;
+    line-height: 1.8;
+}
+
+.intro-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 34px;
+}
+
+.intro-features span {
+    padding: 12px 14px;
+    border: 1px solid #ffffff20;
+    border-radius: 10px;
+    color: #dfe7f8;
+    font-size: 12px;
+}
+
+.intro-features i {
+    margin-right: 8px;
+    color: #a5bbff;
+}
+
+.intro-footer {
+    color: #91a0bc;
+    font-size: 12px;
+}
+
+/* Área do formulário */
+
+.login-panel {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 90px 36px 64px;
+    background: var(--surface);
+}
+
+.login-theme {
+    position: absolute;
+    top: 30px;
+    right: 32px;
+}
+
+.login-form-wrap {
+    width: 100%;
+    max-width: 390px;
+}
+
+.login-symbol {
+    display: grid;
+    width: 54px;
+    height: 54px;
+    margin-bottom: 30px;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-size: 23px;
+}
+
+.login-form-wrap h2 {
+    margin: 12px 0;
+    font-size: 30px;
+    letter-spacing: -0.04em;
+}
+
+.login-description {
+    margin-bottom: 32px;
+    color: var(--muted);
+    line-height: 1.7;
+}
+
+.login-form-wrap .form-control {
+    height: 50px;
+    font-size: 16px;
+}
+
+/* Senha */
+
+.login-password {
+    position: relative;
+}
+
+.login-password input {
+    padding-right: 52px;
+}
+
+.login-password button {
+    position: absolute;
+    top: 3px;
+    right: 4px;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+}
+
+/* Opções e botão */
+
+.login-remember {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 4px 0 26px;
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.login-remember input {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--primary);
+}
+
+.login-submit {
+    width: 100%;
+    min-height: 50px;
+    justify-content: space-between;
+    padding: 14px 18px;
+}
+
+/* Rodapé */
+
+.login-help {
+    margin: 30px 0 0;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.9;
+    text-align: center;
+}
+
+.login-copyright {
+    margin-top: 52px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+/* Acessibilidade */
+
+.login-page :focus-visible {
+    outline: 3px solid #819bf4;
+    outline-offset: 3px;
+}
+
+/* Celular e tablet */
+
+@media (max-width: 800px) {
+    .login-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .login-intro {
+        padding: 24px;
+    }
+
+    .intro-content,
+    .intro-footer {
+        display: none;
+    }
+
+    .login-panel {
+        min-height: calc(100svh - 90px);
+        padding: 74px 24px 30px;
+    }
+
+    .login-theme {
+        top: 16px;
+        right: 24px;
+    }
+
+    .login-symbol {
+        display: none;
+    }
+
+    .login-form-wrap h2 {
+        font-size: 28px;
+    }
+}
